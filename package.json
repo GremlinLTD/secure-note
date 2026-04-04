@@ -3,6 +3,12 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "deploy": "wrangler deploy"
+  },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.14.1",
     "@cloudflare/workers-types": "^4.20260404.1",

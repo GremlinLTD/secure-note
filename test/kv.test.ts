@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { env } from "cloudflare:test";
-import { saveNote, getAndDeleteNote, getNoteMetadata, getNote, incrementAttempts, deleteNote } from "../src/kv";
+import { saveNote, getAndDeleteNote, getNoteMetadata, incrementAttempts, deleteNote } from "../src/kv";
 
 describe("KV helpers", () => {
   it("saves and retrieves a note", async () => {
@@ -59,23 +59,19 @@ describe("KV helpers", () => {
     );
     expect(meta).toBeNull();
   });
-});
 
-describe("getNote (non-destructive read)", () => {
-  it("reads without deleting", async () => {
+  it("stores absolute expiration timestamp", async () => {
     const id = await saveNote(env.NOTES, {
-      c: "peek",
+      c: "expiry-test",
       iv: "iv",
       pw: true,
       ttl: 3600,
     });
 
-    const note = await getNote(env.NOTES, id);
+    const note = await getAndDeleteNote(env.NOTES, id);
     expect(note).not.toBeNull();
-    expect(note!.c).toBe("peek");
-
-    const again = await getNote(env.NOTES, id);
-    expect(again).not.toBeNull();
+    expect(note!.exp).toBeTypeOf("number");
+    expect(note!.exp).toBeGreaterThan(note!.ts);
   });
 });
 
@@ -117,8 +113,8 @@ describe("deleteNote", () => {
     const deleted = await deleteNote(env.NOTES, id);
     expect(deleted).toBe(true);
 
-    const gone = await getNote(env.NOTES, id);
-    expect(gone).toBeNull();
+    const meta = await getNoteMetadata(env.NOTES, id);
+    expect(meta).toBeNull();
   });
 
   it("returns false for non-existent note", async () => {

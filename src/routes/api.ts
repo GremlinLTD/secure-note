@@ -8,13 +8,13 @@ import {
   ErrorSchema,
   NoteIdParamSchema,
 } from "../schemas/notes";
-import { saveNote, getAndDeleteNote, incrementAttempts, deleteNote } from "../kv";
+import { saveNote, getAndDeleteNote, getNoteMetadata, incrementAttempts, deleteNote } from "../kv";
 
 type Env = { Bindings: Bindings };
 
 export const api = new OpenAPIHono<Env>();
 
-const createNoteRoute = createRoute({
+export const createNoteRoute = createRoute({
   method: "post",
   path: "/api/notes",
   request: {
@@ -70,7 +70,7 @@ const deleteNoteRoute = createRoute({
   responses: {
     200: {
       content: { "application/json": { schema: z.object({ deleted: z.boolean() }).openapi("DeleteNoteResponse") } },
-      description: "Note burned after successful decryption",
+      description: "Confirm burn after successful decryption (password-protected notes only)",
     },
     400: {
       content: { "application/json": { schema: ErrorSchema } },
@@ -96,20 +96,22 @@ api.openapi(createNoteRoute, createNoteHandler);
 api.openapi(getNoteRoute, async (c) => {
   const { id } = c.req.valid("param");
 
-  // Non-password notes: burn-before-return (original behavior)
-  // Password-protected notes: return blob, track attempts, burn after 3 attempts
-  const { getNote } = await import("../kv");
-  const note = await getNote(c.env.NOTES, id);
-  if (!note) {
+  // Check if note exists and whether it's password-protected
+  const meta = await getNoteMetadata(c.env.NOTES, id);
+  if (!meta) {
     return c.json({ error: "Note not found or already destroyed" }, 404);
   }
 
-  if (!note.pw) {
-    await getAndDeleteNote(c.env.NOTES, id);
+  if (!meta.pw) {
+    // Non-password: single burn-before-return
+    const note = await getAndDeleteNote(c.env.NOTES, id);
+    if (!note) {
+      return c.json({ error: "Note not found or already destroyed" }, 404);
+    }
     return c.json({ c: note.c, iv: note.iv, pw: note.pw }, 200);
   }
 
-  // Password-protected: increment attempts
+  // Password-protected: increment attempts, auto-burn after 3
   const result = await incrementAttempts(c.env.NOTES, id);
   if (!result) {
     return c.json({ error: "Note not found or already destroyed" }, 404);
