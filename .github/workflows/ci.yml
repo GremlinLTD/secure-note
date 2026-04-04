@@ -40,7 +40,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             cli/gremlin-secret/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('cli/gremlin-secret/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('cli/gremlin-secret/Cargo.toml') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
       - uses: actions-rust-lang/setup-rust-toolchain@v1

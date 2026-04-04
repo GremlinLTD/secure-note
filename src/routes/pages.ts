@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { html } from "hono/html";
+
 import type { Bindings } from "../types";
 import { getNoteMetadata } from "../kv";
 import { CreatePage } from "../views/create";

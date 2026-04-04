@@ -84,7 +84,7 @@ document.getElementById("reveal-btn")?.addEventListener("click", async function(
               </div>
             )}
 
-            <p id="decrypt-error" class="warning hidden">Wrong password or corrupted note. Please try again.</p>
+            <p id="decrypt-error" class="warning hidden">Decryption failed. The password may be incorrect or the link may be corrupted. The note has been destroyed.</p>
 
             <button id="reveal-btn" class="btn btn-danger">Reveal Secret</button>
           </div>
