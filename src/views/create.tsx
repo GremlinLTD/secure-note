@@ -60,8 +60,29 @@ document.getElementById("copy-btn").addEventListener("click", function() {
   navigator.clipboard.writeText(url).then(() => {
     const btn = document.getElementById("copy-btn");
     btn.textContent = "Copied!";
-    setTimeout(() => { btn.textContent = "Copy"; }, 2000);
+    setTimeout(() => { btn.textContent = "Copy Link"; }, 2000);
   });
+});
+
+document.getElementById("new-note-btn").addEventListener("click", function() {
+  document.getElementById("result").classList.add("hidden");
+  document.getElementById("create-form").classList.remove("hidden");
+  document.getElementById("secret").value = "";
+  document.getElementById("password").value = "";
+  document.getElementById("submit-btn").disabled = false;
+  document.getElementById("submit-btn").textContent = "Create Secret Link";
+});
+
+var maxSize = 1048576;
+document.getElementById("secret").addEventListener("input", function() {
+  var len = new TextEncoder().encode(this.value).length;
+  var counter = document.getElementById("size-counter");
+  if (len > maxSize * 0.8) {
+    counter.textContent = "(" + Math.round(len / 1024) + " KB / " + Math.round(maxSize / 1024) + " KB)";
+    counter.className = "size-counter" + (len > maxSize ? " size-over" : "");
+  } else {
+    counter.textContent = "";
+  }
 });
 `;
 
@@ -73,7 +94,7 @@ document.getElementById("copy-btn").addEventListener("click", function() {
 
         <form id="create-form">
           <div class="form-group">
-            <label for="secret">Secret</label>
+            <label for="secret">Secret <span id="size-counter" class="size-counter"></span></label>
             <textarea id="secret" name="secret" placeholder="Enter your secret message..." required></textarea>
           </div>
 
@@ -105,6 +126,7 @@ document.getElementById("copy-btn").addEventListener("click", function() {
           </div>
           <button id="copy-btn" class="btn btn-primary">Copy Link</button>
           <p class="warning mt-md">This link can only be viewed once. After that, the note is permanently destroyed.</p>
+          <button id="new-note-btn" class="btn btn-secondary mt-md">Create Another</button>
         </div>
       </div>
 
