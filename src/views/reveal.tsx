@@ -76,6 +76,15 @@ document.getElementById("reveal-btn")?.addEventListener("click", async function(
     }
   }
 });
+
+document.getElementById("copy-secret-btn")?.addEventListener("click", function() {
+  const text = document.getElementById("secret-content").textContent;
+  navigator.clipboard.writeText(text).then(function() {
+    const btn = document.getElementById("copy-secret-btn");
+    btn.textContent = "Copied!";
+    setTimeout(function() { btn.textContent = "Copy Secret"; }, 2000);
+  });
+});
 `;
 
   if (notFound) {
@@ -118,6 +127,7 @@ document.getElementById("reveal-btn")?.addEventListener("click", async function(
 
           <div id="secret-box" class="hidden">
             <div class="secret-box" id="secret-content"></div>
+            <button id="copy-secret-btn" class="btn btn-primary mt-md">Copy Secret</button>
           </div>
 
           <div id="burned-notice" class="hidden">
