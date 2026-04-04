@@ -186,6 +186,39 @@ describe("isIpAllowed", () => {
   it("returns true for the network address itself in CIDR", () => {
     expect(isIpAllowed("10.0.0.0", ["10.0.0.0/8"])).toBe(true);
   });
+
+  it("matches exact IPv6 address", () => {
+    expect(isIpAllowed("2001:db8::1", ["2001:db8::1"])).toBe(true);
+    expect(isIpAllowed("2001:db8::2", ["2001:db8::1"])).toBe(false);
+  });
+
+  it("matches IPv6 CIDR /48", () => {
+    expect(isIpAllowed("2001:db8:1::1", ["2001:db8:1::/48"])).toBe(true);
+    expect(isIpAllowed("2001:db8:2::1", ["2001:db8:1::/48"])).toBe(false);
+  });
+
+  it("matches IPv6 CIDR /64", () => {
+    expect(isIpAllowed("2001:db8:1:2::ffff", ["2001:db8:1:2::/64"])).toBe(true);
+    expect(isIpAllowed("2001:db8:1:3::1", ["2001:db8:1:2::/64"])).toBe(false);
+  });
+
+  it("matches IPv6 loopback", () => {
+    expect(isIpAllowed("::1", ["::1"])).toBe(true);
+  });
+
+  it("matches IPv4-mapped IPv6 against IPv4 rule", () => {
+    expect(isIpAllowed("::ffff:10.0.0.5", ["10.0.0.5"])).toBe(true);
+    expect(isIpAllowed("::ffff:10.0.0.5", ["10.0.0.0/24"])).toBe(true);
+  });
+
+  it("matches IPv4 against IPv4-mapped IPv6 rule", () => {
+    expect(isIpAllowed("10.0.0.5", ["::ffff:10.0.0.5"])).toBe(true);
+  });
+
+  it("matches IPv6 /128 (exact)", () => {
+    expect(isIpAllowed("2001:db8::1", ["2001:db8::1/128"])).toBe(true);
+    expect(isIpAllowed("2001:db8::2", ["2001:db8::1/128"])).toBe(false);
+  });
 });
 
 describe("deleteNote", () => {
