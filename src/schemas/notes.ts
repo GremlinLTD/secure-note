@@ -23,6 +23,7 @@ export const GetNoteResponseSchema = z
     c: z.string().openapi({ description: "Base64-encoded ciphertext" }),
     iv: z.string().openapi({ description: "Base64-encoded IV" }),
     pw: z.boolean().openapi({ description: "Password-protected flag" }),
+    attemptsRemaining: z.number().optional().openapi({ description: "Remaining decryption attempts (password-protected notes only)" }),
   })
   .openapi("GetNoteResponse");
 

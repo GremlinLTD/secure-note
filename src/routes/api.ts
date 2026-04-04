@@ -8,7 +8,7 @@ import {
   ErrorSchema,
   NoteIdParamSchema,
 } from "../schemas/notes";
-import { saveNote, getAndDeleteNote } from "../kv";
+import { saveNote, getAndDeleteNote, incrementAttempts, deleteNote } from "../kv";
 
 type Env = { Bindings: Bindings };
 
@@ -48,7 +48,29 @@ const getNoteRoute = createRoute({
   responses: {
     200: {
       content: { "application/json": { schema: GetNoteResponseSchema } },
-      description: "Note retrieved and burned",
+      description: "Note retrieved. Non-password notes are burned immediately. Password-protected notes allow up to 3 attempts.",
+    },
+    400: {
+      content: { "application/json": { schema: ErrorSchema } },
+      description: "Invalid UUID",
+    },
+    404: {
+      content: { "application/json": { schema: ErrorSchema } },
+      description: "Note not found or attempts exhausted",
+    },
+  },
+});
+
+const deleteNoteRoute = createRoute({
+  method: "delete",
+  path: "/api/notes/{id}",
+  request: {
+    params: NoteIdParamSchema,
+  },
+  responses: {
+    200: {
+      content: { "application/json": { schema: z.object({ deleted: z.boolean() }).openapi("DeleteNoteResponse") } },
+      description: "Note burned after successful decryption",
     },
     400: {
       content: { "application/json": { schema: ErrorSchema } },
@@ -73,9 +95,39 @@ api.openapi(createNoteRoute, createNoteHandler);
 
 api.openapi(getNoteRoute, async (c) => {
   const { id } = c.req.valid("param");
-  const note = await getAndDeleteNote(c.env.NOTES, id);
+
+  // Non-password notes: burn-before-return (original behavior)
+  // Password-protected notes: return blob, track attempts, burn after 3 attempts
+  const { getNote } = await import("../kv");
+  const note = await getNote(c.env.NOTES, id);
   if (!note) {
-    return c.json({ error: "Note not found" }, 404);
+    return c.json({ error: "Note not found or already destroyed" }, 404);
   }
-  return c.json({ c: note.c, iv: note.iv, pw: note.pw }, 200);
+
+  if (!note.pw) {
+    await getAndDeleteNote(c.env.NOTES, id);
+    return c.json({ c: note.c, iv: note.iv, pw: note.pw }, 200);
+  }
+
+  // Password-protected: increment attempts
+  const result = await incrementAttempts(c.env.NOTES, id);
+  if (!result) {
+    return c.json({ error: "Note not found or already destroyed" }, 404);
+  }
+
+  return c.json({
+    c: result.note.c,
+    iv: result.note.iv,
+    pw: result.note.pw,
+    attemptsRemaining: result.remaining,
+  }, 200);
+});
+
+api.openapi(deleteNoteRoute, async (c) => {
+  const { id } = c.req.valid("param");
+  const deleted = await deleteNote(c.env.NOTES, id);
+  if (!deleted) {
+    return c.json({ error: "Note not found or already destroyed" }, 404);
+  }
+  return c.json({ deleted: true }, 200);
 });

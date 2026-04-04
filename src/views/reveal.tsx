@@ -25,8 +25,9 @@ document.getElementById("reveal-btn")?.addEventListener("click", async function(
     }
 
     const password = document.getElementById("password")?.value || "";
-
     const noteId = ${JSON.stringify(noteId)};
+    const hasPassword = ${JSON.stringify(hasPassword)};
+
     const res = await fetch("/api/notes/" + encodeURIComponent(noteId));
     if (res.status === 404) {
       document.getElementById("note-ui").classList.add("hidden");
@@ -37,8 +38,14 @@ document.getElementById("reveal-btn")?.addEventListener("click", async function(
       throw new Error("Failed to fetch note.");
     }
 
-    const { c, iv } = await res.json();
-    const plaintext = await decryptSecret(c, iv, rawKeyB64, password);
+    const data = await res.json();
+    const plaintext = await decryptSecret(data.c, data.iv, rawKeyB64, password);
+
+    // Decryption succeeded -- burn the note if password-protected
+    // (non-password notes are already burned by the GET)
+    if (hasPassword) {
+      await fetch("/api/notes/" + encodeURIComponent(noteId), { method: "DELETE" });
+    }
 
     document.getElementById("secret-content").textContent = plaintext;
     document.getElementById("secret-box").classList.remove("hidden");
@@ -48,7 +55,22 @@ document.getElementById("reveal-btn")?.addEventListener("click", async function(
     btn.disabled = false;
     btn.textContent = "Reveal Secret";
     if (err.name === "OperationError") {
-      document.getElementById("decrypt-error").classList.remove("hidden");
+      const errorEl = document.getElementById("decrypt-error");
+      const attemptsEl = document.getElementById("attempts-remaining");
+      errorEl.classList.remove("hidden");
+
+      if (attemptsEl) {
+        const remaining = parseInt(attemptsEl.dataset.remaining || "0", 10) - 1;
+        attemptsEl.dataset.remaining = String(remaining);
+        if (remaining <= 0) {
+          errorEl.textContent = "Too many failed attempts. The note has been permanently destroyed.";
+          btn.disabled = true;
+        } else {
+          errorEl.textContent = "Wrong password. " + remaining + " attempt" + (remaining === 1 ? "" : "s") + " remaining.";
+        }
+      } else {
+        errorEl.textContent = "Decryption failed. The note has been destroyed.";
+      }
     } else {
       alert("Error: " + err.message);
     }
@@ -74,7 +96,11 @@ document.getElementById("reveal-btn")?.addEventListener("click", async function(
       <div class="card">
         <div id="note-ui">
           <h1>Secure Note</h1>
-          <p class="subtitle">You have received a secure note. It will be permanently destroyed after you reveal it.</p>
+          <p class="subtitle">
+            {hasPassword
+              ? "You have received a password-protected secure note. You have 3 attempts to enter the correct password."
+              : "You have received a secure note. It will be permanently destroyed after you reveal it."}
+          </p>
 
           <div id="reveal-form">
             {hasPassword && (
@@ -84,7 +110,8 @@ document.getElementById("reveal-btn")?.addEventListener("click", async function(
               </div>
             )}
 
-            <p id="decrypt-error" class="warning hidden">Decryption failed. The password may be incorrect or the link may be corrupted. The note has been destroyed.</p>
+            <p id="decrypt-error" class="warning hidden"></p>
+            {hasPassword && <span id="attempts-remaining" class="hidden" data-remaining="3"></span>}
 
             <button id="reveal-btn" class="btn btn-danger">Reveal Secret</button>
           </div>
