@@ -10,6 +10,7 @@ export const CreateNoteSchema = z
       .default(604800)
       .openapi({ description: "Time-to-live in seconds" }),
     title: z.string().max(100).optional().openapi({ description: "Optional title shown to recipient before reveal" }),
+    burnMsg: z.string().max(200).optional().openapi({ description: "Message shown after note is destroyed" }),
   })
   .openapi("CreateNote");
 

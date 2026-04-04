@@ -8,9 +8,10 @@ type RevealPageProps = {
   notFound: boolean;
   decryptScript: string;
   title?: string;
+  burnMsg?: string;
 };
 
-export const RevealPage: FC<RevealPageProps> = ({ nonce, noteId, hasPassword, notFound, decryptScript, title }) => {
+export const RevealPage: FC<RevealPageProps> = ({ nonce, noteId, hasPassword, notFound, decryptScript, title, burnMsg }) => {
   const inlineScript = `
 ${decryptScript}
 
@@ -140,7 +141,7 @@ document.getElementById("copy-secret-btn")?.addEventListener("click", function()
           </div>
 
           <div id="burned-notice" class="hidden">
-            <p class="warning mt-md">This note has been permanently destroyed and cannot be viewed again.</p>
+            <p class="warning mt-md">{burnMsg ?? "This note has been permanently destroyed and cannot be viewed again."}</p>
           </div>
         </div>
 

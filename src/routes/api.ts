@@ -86,8 +86,8 @@ const deleteNoteRoute = createRoute({
 export const createNoteHandler: Parameters<
   typeof api.openapi<typeof createNoteRoute>
 >[1] = async (c) => {
-  const { c: ciphertext, iv, pw, ttl, title } = c.req.valid("json");
-  const id = await saveNote(c.env.NOTES, { c: ciphertext, iv, pw, ttl, title });
+  const { c: ciphertext, iv, pw, ttl, title, burnMsg } = c.req.valid("json");
+  const id = await saveNote(c.env.NOTES, { c: ciphertext, iv, pw, ttl, title, burnMsg });
   return c.json({ id }, 201);
 };
 
