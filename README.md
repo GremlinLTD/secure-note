@@ -10,7 +10,12 @@ Secrets are encrypted in your browser before being stored. The decryption key ne
 - **Burn after reading** -- non-password notes are destroyed the moment they're retrieved.
 - **Password protection** -- optional second factor with 3 decryption attempts before auto-burn.
 - **Configurable TTL** -- 1 hour, 24 hours, 1 week (default), or 30 days.
-- **API-first** -- JSON API with OpenAPI docs, plus `POST /` for easy curl piping.
+- **Multiple views** -- allow 1-5 views before burn (non-password notes).
+- **Title and burn message** -- optional context for recipients and custom post-destruction message.
+- **IP restriction** -- limit note access to specific IPv4/IPv6 addresses or CIDR ranges.
+- **Dark/light theme** -- follows system preference with manual toggle.
+- **Usage stats** -- note creation and burn counters at `/api/stats`.
+- **API-first** -- JSON API with OpenAPI docs at `/api/docs`, plus `POST /` for easy curl piping.
 - **CLI tools** -- shell script and Rust binary for scripted secret sharing.
 
 ## Quick start

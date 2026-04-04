@@ -1,8 +1,8 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
+import { Scalar } from "@scalar/hono-api-reference";
 import type { MiddlewareHandler } from "hono";
 import type { Bindings } from "./types";
 import { api, createNoteHandler, createNoteRoute } from "./routes/api";
-import { docs } from "./routes/docs";
 import { pages } from "./routes/pages";
 type Env = { Bindings: Bindings };
 
@@ -24,7 +24,6 @@ app.use("/", sizeGuard);
 
 app.get("/health", (c) => c.json({ ok: true }));
 
-app.route("/", docs);
 app.route("/", api);
 app.route("/", pages);
 
@@ -34,5 +33,24 @@ const createNoteAliasRoute = createRoute({
 });
 
 app.openapi(createNoteAliasRoute, createNoteHandler);
+
+app.doc("/api/docs.json", {
+  openapi: "3.1.0",
+  info: {
+    title: "Gremlin Secure Note",
+    version: "1.1.0",
+    description:
+      "Zero-knowledge, one-time secret sharing. Notes are encrypted client-side and destroyed after a single read.",
+  },
+});
+
+app.get(
+  "/api/docs",
+  Scalar({
+    url: "/api/docs.json",
+    theme: "moon",
+    pageTitle: "Gremlin Secure Note API",
+  })
+);
 
 export default app;
