@@ -9,6 +9,8 @@ export interface NoteData {
   attempts?: number;
   title?: string;
   burnMsg?: string;
+  maxViews?: number;
+  views?: number;
 }
 
 export interface NoteInput {
@@ -18,6 +20,7 @@ export interface NoteInput {
   ttl: number;
   title?: string;
   burnMsg?: string;
+  maxViews?: number;
 }
 
 export async function saveNote(
@@ -33,6 +36,8 @@ export async function saveNote(
     ts: now,
     exp: now + input.ttl,
     attempts: 0,
+    maxViews: input.maxViews ?? 1,
+    views: 0,
     ...(input.title ? { title: input.title } : {}),
     ...(input.burnMsg ? { burnMsg: input.burnMsg } : {}),
   };
@@ -89,7 +94,7 @@ export async function deleteNote(
 export async function getNoteMetadata(
   kv: KVNamespace,
   id: string
-): Promise<{ pw: boolean; ts: number; title?: string; burnMsg?: string } | null> {
+): Promise<{ pw: boolean; ts: number; title?: string; burnMsg?: string; maxViews?: number } | null> {
   const key = `note:${id}`;
   const raw = await kv.get(key);
   if (!raw) return null;
@@ -99,5 +104,27 @@ export async function getNoteMetadata(
     ts: data.ts,
     ...(data.title ? { title: data.title } : {}),
     ...(data.burnMsg ? { burnMsg: data.burnMsg } : {}),
+    ...(data.maxViews !== undefined ? { maxViews: data.maxViews } : {}),
   };
+}
+
+export async function getAndDecrementViews(
+  kv: KVNamespace,
+  id: string
+): Promise<{ note: NoteData; remaining: number } | null> {
+  const key = `note:${id}`;
+  const raw = await kv.get(key, { type: "text" });
+  if (!raw) return null;
+  const note = JSON.parse(raw) as NoteData;
+  const maxViews = note.maxViews ?? 1;
+  const views = (note.views ?? 0) + 1;
+  note.views = views;
+
+  if (views >= maxViews) {
+    await kv.delete(key);
+    return { note, remaining: 0 };
+  }
+
+  await kv.put(key, JSON.stringify(note), { expiration: note.exp });
+  return { note, remaining: maxViews - views };
 }

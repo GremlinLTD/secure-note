@@ -30,12 +30,15 @@ document.getElementById("create-form").addEventListener("submit", async function
 
     const title = document.getElementById("title").value.trim() || undefined;
     const burnMsg = document.getElementById("burn-msg").value.trim() || undefined;
+    const hasPw = password.length > 0;
+    const maxViewsEl = document.getElementById("max-views");
+    const maxViews = (!hasPw && maxViewsEl) ? Number(maxViewsEl.value) : 1;
     const { c, iv, key } = await encryptSecret(secret, password);
 
     const res = await fetch("/api/notes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ c, iv, pw: password.length > 0, ttl, title, burnMsg }),
+      body: JSON.stringify({ c, iv, pw: hasPw, ttl, title, burnMsg, maxViews }),
     });
 
     if (!res.ok) {
@@ -73,8 +76,19 @@ document.getElementById("new-note-btn").addEventListener("click", function() {
   document.getElementById("secret").value = "";
   document.getElementById("password").value = "";
   document.getElementById("burn-msg").value = "";
+  var maxViewsEl = document.getElementById("max-views");
+  if (maxViewsEl) { maxViewsEl.value = "1"; }
+  var viewsGroup = document.getElementById("views-group");
+  if (viewsGroup) { viewsGroup.classList.remove("hidden"); }
   document.getElementById("submit-btn").disabled = false;
   document.getElementById("submit-btn").textContent = "Create Secret Link";
+});
+
+document.getElementById("password").addEventListener("input", function() {
+  var viewsGroup = document.getElementById("views-group");
+  if (viewsGroup) {
+    viewsGroup.classList.toggle("hidden", this.value.length > 0);
+  }
 });
 
 var maxSize = 1048576;
@@ -120,6 +134,17 @@ document.getElementById("secret").addEventListener("input", function() {
                 <option value="86400">24 hours</option>
                 <option value="604800" selected>1 week</option>
                 <option value="2592000">30 days</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="views-group">
+              <label for="max-views">Views</label>
+              <select id="max-views" name="max-views">
+                <option value="1" selected>1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
               </select>
             </div>
           </div>

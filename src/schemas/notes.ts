@@ -11,6 +11,7 @@ export const CreateNoteSchema = z
       .openapi({ description: "Time-to-live in seconds" }),
     title: z.string().max(100).optional().openapi({ description: "Optional title shown to recipient before reveal" }),
     burnMsg: z.string().max(200).optional().openapi({ description: "Message shown after note is destroyed" }),
+    maxViews: z.number().int().min(1).max(5).default(1).optional().openapi({ description: "Number of times the note can be viewed (non-password notes only)" }),
   })
   .openapi("CreateNote");
 
@@ -26,6 +27,7 @@ export const GetNoteResponseSchema = z
     iv: z.string().openapi({ description: "Base64-encoded IV" }),
     pw: z.boolean().openapi({ description: "Password-protected flag" }),
     attemptsRemaining: z.number().optional().openapi({ description: "Remaining decryption attempts (password-protected notes only)" }),
+    viewsRemaining: z.number().optional().openapi({ description: "Remaining views (multi-view notes only)" }),
   })
   .openapi("GetNoteResponse");
 
