@@ -13,7 +13,8 @@ export const RevealPage: FC<RevealPageProps> = ({ nonce, noteId, hasPassword, no
   const inlineScript = `
 ${decryptScript}
 
-document.getElementById("reveal-btn")?.addEventListener("click", async function() {
+document.getElementById("reveal-form")?.addEventListener("submit", async function(e) {
+  e.preventDefault();
   const btn = document.getElementById("reveal-btn");
   btn.disabled = true;
   btn.textContent = "Decrypting…";
@@ -111,7 +112,7 @@ document.getElementById("copy-secret-btn")?.addEventListener("click", function()
               : "You have received a secure note. It will be permanently destroyed after you reveal it."}
           </p>
 
-          <div id="reveal-form">
+          <form id="reveal-form">
             {hasPassword && (
               <div class="form-group">
                 <label for="password">Password</label>
@@ -122,8 +123,8 @@ document.getElementById("copy-secret-btn")?.addEventListener("click", function()
             <p id="decrypt-error" class="warning hidden"></p>
             {hasPassword && <span id="attempts-remaining" class="hidden" data-remaining="3"></span>}
 
-            <button id="reveal-btn" class="btn btn-danger">Reveal Secret</button>
-          </div>
+            <button type="submit" id="reveal-btn" class="btn btn-danger">Reveal Secret</button>
+          </form>
 
           <div id="secret-box" class="hidden">
             <div class="secret-box" id="secret-content"></div>
