@@ -8,9 +8,11 @@ type RevealPageProps = {
   notFound: boolean;
   decryptScript: string;
   title?: string;
+  burnMsg?: string;
+  maxViews?: number;
 };
 
-export const RevealPage: FC<RevealPageProps> = ({ nonce, noteId, hasPassword, notFound, decryptScript, title }) => {
+export const RevealPage: FC<RevealPageProps> = ({ nonce, noteId, hasPassword, notFound, decryptScript, title, burnMsg, maxViews }) => {
   const inlineScript = `
 ${decryptScript}
 
@@ -49,6 +51,14 @@ document.getElementById("reveal-form")?.addEventListener("submit", async functio
       await fetch("/api/notes/" + encodeURIComponent(noteId), { method: "DELETE" });
     }
 
+    // Update burned notice based on remaining views
+    var burnedNoticeEl = document.getElementById("burned-notice");
+    var burnedMsgEl = burnedNoticeEl.querySelector("p");
+    if (typeof data.viewsRemaining === "number" && data.viewsRemaining > 0) {
+      burnedMsgEl.textContent = data.viewsRemaining + " view" + (data.viewsRemaining === 1 ? "" : "s") + " remaining.";
+      burnedMsgEl.className = "success mt-md";
+    }
+
     document.getElementById("secret-content").textContent = plaintext;
     var form = document.getElementById("reveal-form");
     form.classList.add("fade-out");
@@ -56,8 +66,8 @@ document.getElementById("reveal-form")?.addEventListener("submit", async functio
       form.classList.add("hidden");
       document.getElementById("secret-box").classList.remove("hidden");
       document.getElementById("secret-box").classList.add("fade-in");
-      document.getElementById("burned-notice").classList.remove("hidden");
-      document.getElementById("burned-notice").classList.add("fade-in");
+      burnedNoticeEl.classList.remove("hidden");
+      burnedNoticeEl.classList.add("fade-in");
     }, { once: true });
   } catch (err) {
     btn.disabled = false;
@@ -117,7 +127,9 @@ document.getElementById("copy-secret-btn")?.addEventListener("click", function()
           <p class="subtitle">
             {hasPassword
               ? "You have received a password-protected secure note. You have 3 attempts to enter the correct password."
-              : "You have received a secure note. It will be permanently destroyed after you reveal it."}
+              : maxViews && maxViews > 1
+                ? `You have received a secure note. This note can be viewed ${maxViews} times.`
+                : "You have received a secure note. It will be permanently destroyed after you reveal it."}
           </p>
 
           <form id="reveal-form">
@@ -140,7 +152,7 @@ document.getElementById("copy-secret-btn")?.addEventListener("click", function()
           </div>
 
           <div id="burned-notice" class="hidden">
-            <p class="warning mt-md">This note has been permanently destroyed and cannot be viewed again.</p>
+            <p class="warning mt-md">{burnMsg ?? "This note has been permanently destroyed and cannot be viewed again."}</p>
           </div>
         </div>
 
