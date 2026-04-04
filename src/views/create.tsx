@@ -77,33 +77,34 @@ document.getElementById("copy-btn").addEventListener("click", function() {
             <textarea id="secret" name="secret" placeholder="Enter your secret message..." required></textarea>
           </div>
 
-          <div class="form-group">
-            <label for="password">Password (optional)</label>
-            <input type="password" id="password" name="password" placeholder="Leave blank for no password" />
-          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="password">Password (optional)</label>
+              <input type="password" id="password" name="password" placeholder="Extra protection" />
+            </div>
 
-          <div class="form-group">
-            <label for="ttl">Expires after</label>
-            <select id="ttl" name="ttl">
-              <option value="3600">1 hour</option>
-              <option value="86400">24 hours</option>
-              <option value="604800" selected>1 week</option>
-              <option value="2592000">30 days</option>
-            </select>
+            <div class="form-group">
+              <label for="ttl">Expires after</label>
+              <select id="ttl" name="ttl">
+                <option value="3600">1 hour</option>
+                <option value="86400">24 hours</option>
+                <option value="604800" selected>1 week</option>
+                <option value="2592000">30 days</option>
+              </select>
+            </div>
           </div>
 
           <button type="submit" id="submit-btn" class="btn btn-primary">Create Secret Link</button>
         </form>
 
         <div id="result" class="hidden">
-          <p class="success">Your secret link is ready. Share it once — it will be destroyed after viewing.</p>
+          <p class="success">Your secret link is ready. Share it once, it will be destroyed after viewing.</p>
           <div class="form-group" style="margin-top:16px;">
             <label>Share URL</label>
-            <div class="row">
-              <a id="share-url" class="link-box" href="#" target="_blank" rel="noopener noreferrer"></a>
-              <button id="copy-btn" class="btn btn-primary">Copy</button>
-            </div>
+            <a id="share-url" class="link-box" href="#" target="_blank" rel="noopener noreferrer"></a>
           </div>
+          <button id="copy-btn" class="btn btn-primary">Copy Link</button>
+          <p class="warning" style="margin-top:16px;">This link can only be viewed once. After that, the note is permanently destroyed.</p>
         </div>
       </div>
 
