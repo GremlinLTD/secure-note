@@ -7,9 +7,11 @@ BASE_URL = "https://secure.gremlin.group"
 MAX_NOTE_SIZE = "1048576"
 DEFAULT_TTL = "604800"
 
-# Rate limiting: configure via Cloudflare dashboard
-# POST /api/notes: 10 req/min per IP
-# GET /api/notes/*: 30 req/min per IP
+# Rate limiting: run scripts/setup-rate-limits.sh with a WAF-scoped API token
+# Rules:
+#   GET  /api/notes/* returning 404: 10/min per IP, block 5 min (brute-force)
+#   DELETE /api/notes/* returning 403/404: 5/min per IP, block 10 min (blind deletion)
+#   POST /api/notes: 10/min per IP, block 5 min (create spam)
 
 [[kv_namespaces]]
 binding = "NOTES"

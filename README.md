@@ -136,6 +136,19 @@ bunx wrangler kv namespace create NOTES
 bunx wrangler deploy
 ```
 
+### Rate limiting
+
+Set up WAF rate limiting rules to protect against brute-force attacks:
+
+```bash
+CLOUDFLARE_API_TOKEN=xxx CLOUDFLARE_ZONE_ID=xxx sh scripts/setup-rate-limits.sh
+```
+
+Requires an API token with "Zone WAF Write" permission. Creates three rules:
+- **GET /api/notes/***: Block after 10 failed lookups (404) per minute per IP for 5 minutes
+- **DELETE /api/notes/***: Block after 5 failed deletes (403/404) per minute per IP for 10 minutes
+- **POST /api/notes**: Block after 10 creates per minute per IP for 5 minutes
+
 ### Environment variables
 
 | Variable | Default | Description |
