@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { env } from "cloudflare:test";
-import { saveNote, getAndDeleteNote, getAndDecrementViews, getNoteMetadata, incrementAttempts, deleteNote } from "../src/kv";
+import { saveNote, getAndDeleteNote, getAndDecrementViews, getNoteMetadata, incrementAttempts, deleteNote, isIpAllowed } from "../src/kv";
 
 describe("KV helpers", () => {
   it("saves and retrieves a note", async () => {
@@ -159,6 +159,32 @@ describe("burnMsg", () => {
     const meta = await getNoteMetadata(env.NOTES, id);
     expect(meta).not.toBeNull();
     expect(meta!.burnMsg).toBeUndefined();
+  });
+});
+
+describe("isIpAllowed", () => {
+  it("returns true when allowedIps is empty", () => {
+    expect(isIpAllowed("1.2.3.4", [])).toBe(true);
+  });
+
+  it("returns true for an exact IP match", () => {
+    expect(isIpAllowed("10.0.0.5", ["10.0.0.5", "192.168.1.1"])).toBe(true);
+  });
+
+  it("returns false when IP does not match any entry", () => {
+    expect(isIpAllowed("10.0.0.6", ["10.0.0.5", "192.168.1.1"])).toBe(false);
+  });
+
+  it("returns true for an IP within a /24 CIDR range", () => {
+    expect(isIpAllowed("203.0.113.42", ["203.0.113.0/24"])).toBe(true);
+  });
+
+  it("returns false for an IP outside a /24 CIDR range", () => {
+    expect(isIpAllowed("203.0.114.1", ["203.0.113.0/24"])).toBe(false);
+  });
+
+  it("returns true for the network address itself in CIDR", () => {
+    expect(isIpAllowed("10.0.0.0", ["10.0.0.0/8"])).toBe(true);
   });
 });
 

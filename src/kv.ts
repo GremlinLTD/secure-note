@@ -11,6 +11,7 @@ export interface NoteData {
   burnMsg?: string;
   maxViews?: number;
   views?: number;
+  allowedIps?: string[];
 }
 
 export interface NoteInput {
@@ -21,6 +22,7 @@ export interface NoteInput {
   title?: string;
   burnMsg?: string;
   maxViews?: number;
+  allowedIps?: string[];
 }
 
 export async function saveNote(
@@ -40,6 +42,7 @@ export async function saveNote(
     views: 0,
     ...(input.title ? { title: input.title } : {}),
     ...(input.burnMsg ? { burnMsg: input.burnMsg } : {}),
+    ...(input.allowedIps && input.allowedIps.length > 0 ? { allowedIps: input.allowedIps } : {}),
   };
   await kv.put(`note:${id}`, JSON.stringify(data), {
     expirationTtl: input.ttl,
@@ -94,7 +97,7 @@ export async function deleteNote(
 export async function getNoteMetadata(
   kv: KVNamespace,
   id: string
-): Promise<{ pw: boolean; ts: number; title?: string; burnMsg?: string; maxViews?: number } | null> {
+): Promise<{ pw: boolean; ts: number; title?: string; burnMsg?: string; maxViews?: number; allowedIps?: string[] } | null> {
   const key = `note:${id}`;
   const raw = await kv.get(key);
   if (!raw) return null;
@@ -105,7 +108,44 @@ export async function getNoteMetadata(
     ...(data.title ? { title: data.title } : {}),
     ...(data.burnMsg ? { burnMsg: data.burnMsg } : {}),
     ...(data.maxViews !== undefined ? { maxViews: data.maxViews } : {}),
+    ...(data.allowedIps && data.allowedIps.length > 0 ? { allowedIps: data.allowedIps } : {}),
   };
+}
+
+export function isIpAllowed(clientIp: string, allowedIps: string[]): boolean {
+  if (!allowedIps || allowedIps.length === 0) return true;
+
+  for (const entry of allowedIps) {
+    if (!entry.includes("/")) {
+      if (clientIp === entry) return true;
+      continue;
+    }
+
+    const [network, prefixStr] = entry.split("/");
+    const prefix = parseInt(prefixStr, 10);
+    if (isNaN(prefix) || prefix < 0 || prefix > 32) continue;
+
+    const clientInt = ipToInt(clientIp);
+    const networkInt = ipToInt(network);
+    if (clientInt === null || networkInt === null) continue;
+
+    const mask = prefix === 0 ? 0 : (~0 << (32 - prefix)) >>> 0;
+    if ((clientInt & mask) === (networkInt & mask)) return true;
+  }
+
+  return false;
+}
+
+function ipToInt(ip: string): number | null {
+  const parts = ip.split(".");
+  if (parts.length !== 4) return null;
+  let result = 0;
+  for (const part of parts) {
+    const n = parseInt(part, 10);
+    if (isNaN(n) || n < 0 || n > 255) return null;
+    result = (result * 256 + n) >>> 0;
+  }
+  return result;
 }
 
 export async function getAndDecrementViews(

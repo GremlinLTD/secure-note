@@ -10,9 +10,10 @@ type RevealPageProps = {
   title?: string;
   burnMsg?: string;
   maxViews?: number;
+  ipRestricted?: boolean;
 };
 
-export const RevealPage: FC<RevealPageProps> = ({ nonce, noteId, hasPassword, notFound, decryptScript, title, burnMsg, maxViews }) => {
+export const RevealPage: FC<RevealPageProps> = ({ nonce, noteId, hasPassword, notFound, decryptScript, title, burnMsg, maxViews, ipRestricted }) => {
   const inlineScript = `
 ${decryptScript}
 
@@ -36,6 +37,11 @@ document.getElementById("reveal-form")?.addEventListener("submit", async functio
     if (res.status === 404) {
       document.getElementById("note-ui").classList.add("hidden");
       document.getElementById("not-found").classList.remove("hidden");
+      return;
+    }
+    if (res.status === 403) {
+      document.getElementById("note-ui").classList.add("hidden");
+      document.getElementById("ip-denied").classList.remove("hidden");
       return;
     }
     if (!res.ok) {
@@ -130,6 +136,7 @@ document.getElementById("copy-secret-btn")?.addEventListener("click", function()
               : maxViews && maxViews > 1
                 ? `You have received a secure note. This note can be viewed ${maxViews} times.`
                 : "You have received a secure note. It will be permanently destroyed after you reveal it."}
+            {ipRestricted && " This note has IP restrictions."}
           </p>
 
           <form id="reveal-form">
@@ -160,6 +167,13 @@ document.getElementById("copy-secret-btn")?.addEventListener("click", function()
           <div class="burned-msg">
             <h2>Note Not Found</h2>
             <p>This note does not exist, has already been viewed, or has expired.</p>
+          </div>
+        </div>
+
+        <div id="ip-denied" class="hidden">
+          <div class="burned-msg">
+            <h2>Access Denied</h2>
+            <p>Access denied. This note is restricted to specific IP addresses.</p>
           </div>
         </div>
       </div>

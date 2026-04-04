@@ -8,7 +8,7 @@ import {
   ErrorSchema,
   NoteIdParamSchema,
 } from "../schemas/notes";
-import { saveNote, getAndDeleteNote, getAndDecrementViews, getNoteMetadata, incrementAttempts, deleteNote, incrementStat, getStats } from "../kv";
+import { saveNote, getAndDeleteNote, getAndDecrementViews, getNoteMetadata, incrementAttempts, deleteNote, incrementStat, getStats, isIpAllowed } from "../kv";
 
 type Env = { Bindings: Bindings };
 
@@ -54,6 +54,10 @@ const getNoteRoute = createRoute({
       content: { "application/json": { schema: ErrorSchema } },
       description: "Invalid UUID",
     },
+    403: {
+      content: { "application/json": { schema: ErrorSchema } },
+      description: "Access denied due to IP restriction",
+    },
     404: {
       content: { "application/json": { schema: ErrorSchema } },
       description: "Note not found or attempts exhausted",
@@ -76,6 +80,10 @@ const deleteNoteRoute = createRoute({
       content: { "application/json": { schema: ErrorSchema } },
       description: "Invalid UUID",
     },
+    403: {
+      content: { "application/json": { schema: ErrorSchema } },
+      description: "Access denied due to IP restriction",
+    },
     404: {
       content: { "application/json": { schema: ErrorSchema } },
       description: "Note not found",
@@ -86,8 +94,8 @@ const deleteNoteRoute = createRoute({
 export const createNoteHandler: Parameters<
   typeof api.openapi<typeof createNoteRoute>
 >[1] = async (c) => {
-  const { c: ciphertext, iv, pw, ttl, title, burnMsg, maxViews } = c.req.valid("json");
-  const id = await saveNote(c.env.NOTES, { c: ciphertext, iv, pw, ttl, title, burnMsg, maxViews });
+  const { c: ciphertext, iv, pw, ttl, title, burnMsg, maxViews, allowedIps } = c.req.valid("json");
+  const id = await saveNote(c.env.NOTES, { c: ciphertext, iv, pw, ttl, title, burnMsg, maxViews, allowedIps });
   incrementStat(c.env.NOTES, "created");
   return c.json({ id }, 201);
 };
@@ -101,6 +109,11 @@ api.openapi(getNoteRoute, async (c) => {
   const meta = await getNoteMetadata(c.env.NOTES, id);
   if (!meta) {
     return c.json({ error: "Note not found or already destroyed" }, 404);
+  }
+
+  const clientIp = c.req.header("cf-connecting-ip") || c.req.header("x-forwarded-for") || "unknown";
+  if (meta.allowedIps && !isIpAllowed(clientIp, meta.allowedIps)) {
+    return c.json({ error: "Access denied. This note is restricted to specific IP addresses." }, 403);
   }
 
   if (!meta.pw) {
@@ -148,6 +161,17 @@ api.get("/api/stats", async (c) => {
 
 api.openapi(deleteNoteRoute, async (c) => {
   const { id } = c.req.valid("param");
+
+  const meta = await getNoteMetadata(c.env.NOTES, id);
+  if (!meta) {
+    return c.json({ error: "Note not found or already destroyed" }, 404);
+  }
+
+  const clientIp = c.req.header("cf-connecting-ip") || c.req.header("x-forwarded-for") || "unknown";
+  if (meta.allowedIps && !isIpAllowed(clientIp, meta.allowedIps)) {
+    return c.json({ error: "Access denied. This note is restricted to specific IP addresses." }, 403);
+  }
+
   const deleted = await deleteNote(c.env.NOTES, id);
   if (!deleted) {
     return c.json({ error: "Note not found or already destroyed" }, 404);

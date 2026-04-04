@@ -12,6 +12,7 @@ export const CreateNoteSchema = z
     title: z.string().max(100).optional().openapi({ description: "Optional title shown to recipient before reveal" }),
     burnMsg: z.string().max(200).optional().openapi({ description: "Message shown after note is destroyed" }),
     maxViews: z.number().int().min(1).max(5).default(1).optional().openapi({ description: "Number of times the note can be viewed (non-password notes only)" }),
+    allowedIps: z.array(z.string()).max(10).optional().openapi({ description: "IP addresses or CIDR ranges allowed to view the note" }),
   })
   .openapi("CreateNote");
 
