@@ -130,16 +130,28 @@ document.getElementById("copy-secret-btn")?.addEventListener("click", function()
     <Layout title="Reveal Secure Note — Gremlin Secure Note" nonce={nonce}>
       <div class="card">
         <div id="note-ui">
-          <h1>Secure Note</h1>
-          {title && <h2 class="note-title">{title}</h2>}
-          <p class="subtitle">
-            {hasPassword
-              ? "You have received a password-protected secure note. You have 3 attempts to enter the correct password."
-              : maxViews && maxViews > 1
-                ? `You have received a secure note. This note can be viewed ${maxViews} times.`
-                : "You have received a secure note. It will be permanently destroyed after you reveal it."}
-            {ipRestricted && " This note has IP restrictions."}
-          </p>
+          <div class="reveal-header">
+            <div class="lock-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0110 0v4"/>
+              </svg>
+            </div>
+            <h1>{title || "Secure Note"}</h1>
+            <p class="subtitle">
+              {hasPassword
+                ? "This note is password-protected. You have 3 attempts."
+                : maxViews && maxViews > 1
+                  ? `This note can be viewed ${maxViews} times before it is destroyed.`
+                  : "This note will be permanently destroyed after you reveal it."}
+            </p>
+            {ipRestricted && (
+              <div class="info-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+                IP restricted
+              </div>
+            )}
+          </div>
 
           <form id="reveal-form">
             {hasPassword && (
