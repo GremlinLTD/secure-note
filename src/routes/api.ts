@@ -32,6 +32,10 @@ const createNoteRoute = createRoute({
       content: { "application/json": { schema: ErrorSchema } },
       description: "Validation error",
     },
+    413: {
+      content: { "application/json": { schema: ErrorSchema } },
+      description: "Note too large",
+    },
   },
 });
 
