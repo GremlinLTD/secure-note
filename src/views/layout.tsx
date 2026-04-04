@@ -186,6 +186,17 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             color: #0D1117;
           }
 
+          .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+          }
+
+          .btn-secondary:hover {
+            border-color: var(--border-hover);
+            color: var(--text);
+          }
+
           .btn-danger {
             background: var(--coral);
             color: #fff;
@@ -261,6 +272,16 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
           .hidden { display: none; }
 
           .mt-md { margin-top: 16px; }
+
+          .size-counter {
+            font-weight: 400;
+            font-size: 12px;
+            color: var(--text-muted);
+          }
+
+          .size-over {
+            color: var(--coral);
+          }
 
           .teal-dot { color: var(--teal); }
 

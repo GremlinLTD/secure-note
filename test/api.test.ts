@@ -216,3 +216,85 @@ describe("POST / (alias)", () => {
     expect(body.id).toBeDefined();
   });
 });
+
+describe("GET /health", () => {
+  it("returns ok", async () => {
+    const res = await app.request("/health", { method: "GET" }, env);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+  });
+});
+
+describe("Page routes", () => {
+  it("GET / returns create page with CSP header", async () => {
+    const res = await app.request("/", { method: "GET" }, env);
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain("<!DOCTYPE html>");
+    expect(html).toContain("Share a Secret");
+    expect(res.headers.get("Content-Security-Policy")).toContain("script-src 'nonce-");
+  });
+
+  it("GET /note/:id returns 404 for non-existent note", async () => {
+    const res = await app.request(
+      "/note/00000000-0000-4000-8000-000000000000",
+      { method: "GET" },
+      env
+    );
+    expect(res.status).toBe(404);
+    const html = await res.text();
+    expect(html).toContain("Note Not Found");
+  });
+
+  it("GET /note/:id returns 404 for invalid UUID", async () => {
+    const res = await app.request("/note/not-a-uuid", { method: "GET" }, env);
+    expect(res.status).toBe(404);
+  });
+
+  it("GET /note/:id returns reveal page for existing note", async () => {
+    const create = await app.request(
+      "/api/notes",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ c: "test", iv: "iv", pw: false, ttl: 3600 }),
+      },
+      env
+    );
+    const { id } = await create.json();
+
+    const res = await app.request(`/note/${id}`, { method: "GET" }, env);
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain("Secure Note");
+    expect(html).toContain("Reveal Secret");
+  });
+
+  it("GET /note/:id shows password field for pw-protected note", async () => {
+    const create = await app.request(
+      "/api/notes",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ c: "test", iv: "iv", pw: true, ttl: 3600 }),
+      },
+      env
+    );
+    const { id } = await create.json();
+
+    const res = await app.request(`/note/${id}`, { method: "GET" }, env);
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain('type="password"');
+    expect(html).toContain("3 attempts");
+  });
+
+  it("GET /cli.sh returns shell script", async () => {
+    const res = await app.request("/cli.sh", { method: "GET" }, env);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type")).toContain("text/plain");
+    const text = await res.text();
+    expect(text).toContain("#!/bin/sh");
+  });
+});

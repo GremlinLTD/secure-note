@@ -1,17 +1,14 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
+import type { MiddlewareHandler } from "hono";
 import type { Bindings } from "./types";
-import { api, createNoteHandler } from "./routes/api";
+import { api, createNoteHandler, createNoteRoute } from "./routes/api";
 import { docs } from "./routes/docs";
 import { pages } from "./routes/pages";
-import {
-  CreateNoteSchema,
-  CreateNoteResponseSchema,
-  ErrorSchema,
-} from "./schemas/notes";
+type Env = { Bindings: Bindings };
 
-const app = new OpenAPIHono<{ Bindings: Bindings }>();
+const app = new OpenAPIHono<Env>();
 
-const sizeGuard = async (c: any, next: any) => {
+const sizeGuard: MiddlewareHandler<Env> = async (c, next) => {
   if (c.req.method === "POST") {
     const maxSize = Number(c.env.MAX_NOTE_SIZE ?? 1048576);
     const contentLength = Number(c.req.header("Content-Length") ?? 0);
@@ -32,28 +29,8 @@ app.route("/", api);
 app.route("/", pages);
 
 const createNoteAliasRoute = createRoute({
-  method: "post",
+  ...createNoteRoute,
   path: "/",
-  request: {
-    body: {
-      content: { "application/json": { schema: CreateNoteSchema } },
-      required: true,
-    },
-  },
-  responses: {
-    201: {
-      content: { "application/json": { schema: CreateNoteResponseSchema } },
-      description: "Note created",
-    },
-    400: {
-      content: { "application/json": { schema: ErrorSchema } },
-      description: "Validation error",
-    },
-    413: {
-      content: { "application/json": { schema: ErrorSchema } },
-      description: "Note too large",
-    },
-  },
 });
 
 app.openapi(createNoteAliasRoute, createNoteHandler);
