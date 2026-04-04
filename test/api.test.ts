@@ -204,6 +204,27 @@ describe("DELETE /api/notes/:id", () => {
     expect(get2.status).toBe(404);
   });
 
+  it("returns 403 when deleting a note that has never been retrieved", async () => {
+    const create = await app.request(
+      "/api/notes",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ c: "no-get", iv: "iv", pw: true, ttl: 3600 }),
+      },
+      env
+    );
+    const { id } = await create.json();
+
+    // Try to DELETE without ever calling GET
+    const del = await app.request(`/api/notes/${id}`, { method: "DELETE" }, env);
+    expect(del.status).toBe(403);
+
+    // Note should still exist
+    const get = await app.request(`/api/notes/${id}`, { method: "GET" }, env);
+    expect(get.status).toBe(200);
+  });
+
   it("returns 404 for non-existent note", async () => {
     const res = await app.request(
       "/api/notes/00000000-0000-4000-8000-000000000000",

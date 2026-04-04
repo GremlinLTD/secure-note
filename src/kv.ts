@@ -97,7 +97,7 @@ export async function deleteNote(
 export async function getNoteMetadata(
   kv: KVNamespace,
   id: string
-): Promise<{ pw: boolean; ts: number; title?: string; burnMsg?: string; maxViews?: number; allowedIps?: string[] } | null> {
+): Promise<{ pw: boolean; ts: number; attempts: number; title?: string; burnMsg?: string; maxViews?: number; allowedIps?: string[] } | null> {
   const key = `note:${id}`;
   const raw = await kv.get(key);
   if (!raw) return null;
@@ -105,6 +105,7 @@ export async function getNoteMetadata(
   return {
     pw: data.pw,
     ts: data.ts,
+    attempts: data.attempts ?? 0,
     ...(data.title ? { title: data.title } : {}),
     ...(data.burnMsg ? { burnMsg: data.burnMsg } : {}),
     ...(data.maxViews !== undefined ? { maxViews: data.maxViews } : {}),
