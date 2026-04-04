@@ -1,0 +1,22 @@
+{
+  "name": "secure-note",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.14.1",
+    "@cloudflare/workers-types": "^4.20260404.1",
+    "@types/bun": "latest",
+    "vitest": "^4.1.2",
+    "wrangler": "^4.80.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@hono/zod-openapi": "^1.2.4",
+    "@scalar/hono-api-reference": "^0.10.6",
+    "hono": "^4.12.10",
+    "zod": "^4.3.6"
+  }
+}

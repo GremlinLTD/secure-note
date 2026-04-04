@@ -1,0 +1,13 @@
+name = "secure-note"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+[vars]
+BASE_URL = "https://secure.gremlin.group"
+MAX_NOTE_SIZE = "1048576"
+DEFAULT_TTL = "604800"
+
+[[kv_namespaces]]
+binding = "NOTES"
+id = "placeholder-create-via-wrangler"
+preview_id = "placeholder-create-via-wrangler"
