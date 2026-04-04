@@ -1,6 +1,7 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
 import type { Bindings } from "./types";
 import { api, createNoteHandler } from "./routes/api";
+import { docs } from "./routes/docs";
 import {
   CreateNoteSchema,
   CreateNoteResponseSchema,
@@ -25,6 +26,7 @@ app.use("/", sizeGuard);
 
 app.get("/health", (c) => c.json({ ok: true }));
 
+app.route("/", docs);
 app.route("/", api);
 
 const createNoteAliasRoute = createRoute({
