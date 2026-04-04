@@ -96,7 +96,9 @@ document.getElementById("reveal-form")?.addEventListener("submit", async functio
         errorEl.textContent = "Decryption failed. The note has been destroyed.";
       }
     } else {
-      alert("Error: " + err.message);
+      var revealErrEl = document.getElementById("reveal-error");
+      revealErrEl.textContent = "Error: " + err.message;
+      revealErrEl.classList.remove("hidden");
     }
   }
 });
@@ -116,7 +118,7 @@ document.getElementById("copy-secret-btn")?.addEventListener("click", function()
       <Layout title="Note Not Found — Gremlin Secure Note" nonce={nonce}>
         <div class="card">
           <div class="burned-msg">
-            <h2>Note Not Found</h2>
+            <h1>Note Not Found</h1>
             <p>This note does not exist, has already been viewed, or has expired.</p>
           </div>
         </div>
@@ -152,6 +154,8 @@ document.getElementById("copy-secret-btn")?.addEventListener("click", function()
 
             <button type="submit" id="reveal-btn" class="btn btn-danger">Reveal Secret</button>
           </form>
+
+          <p id="reveal-error" class="warning hidden"></p>
 
           <div id="secret-box" class="hidden">
             <div class="secret-box" id="secret-content"></div>
