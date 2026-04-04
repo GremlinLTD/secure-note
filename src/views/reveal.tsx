@@ -121,7 +121,7 @@ document.getElementById("reveal-btn")?.addEventListener("click", async function(
           </div>
 
           <div id="burned-notice" class="hidden">
-            <p class="warning" style="margin-top:16px;">This note has been permanently destroyed and cannot be viewed again.</p>
+            <p class="warning mt-md">This note has been permanently destroyed and cannot be viewed again.</p>
           </div>
         </div>
 
