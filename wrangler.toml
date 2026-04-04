@@ -7,6 +7,10 @@ BASE_URL = "https://secure.gremlin.group"
 MAX_NOTE_SIZE = "1048576"
 DEFAULT_TTL = "604800"
 
+# Rate limiting: configure via Cloudflare dashboard
+# POST /api/notes: 10 req/min per IP
+# GET /api/notes/*: 30 req/min per IP
+
 [[kv_namespaces]]
 binding = "NOTES"
 id = "placeholder-create-via-wrangler"
