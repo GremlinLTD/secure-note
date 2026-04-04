@@ -5,6 +5,7 @@ import { getNoteMetadata } from "../kv";
 import { CreatePage } from "../views/create";
 import { RevealPage } from "../views/reveal";
 import { getEncryptScript, getDecryptScript } from "../crypto";
+import { CLI_SCRIPT } from "../cli-script";
 
 type Env = { Bindings: Bindings };
 
@@ -35,6 +36,19 @@ pages.get("/", (c) => {
   return c.html(
     CreatePage({ nonce, baseUrl, encryptScript: getEncryptScript() }) as any
   );
+});
+
+pages.get("/cli.sh", (c) => {
+  const script = CLI_SCRIPT.replace(
+    "https://secure.gremlin.group",
+    c.env.BASE_URL || "https://secure.gremlin.group"
+  );
+  return new Response(script, {
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Content-Disposition": 'attachment; filename="gremlin-secret.sh"',
+    },
+  });
 });
 
 pages.get("/note/:id", async (c) => {
