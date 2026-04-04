@@ -115,6 +115,10 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             outline-offset: 2px;
           }
 
+          .icon-moon { display: none; }
+          [data-theme="light"] .icon-sun { display: none; }
+          [data-theme="light"] .icon-moon { display: inline; }
+
           .card {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -423,13 +427,16 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
         `}</style>
       </head>
       <body>
-        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark theme"></button>
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark theme">
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        </button>
         <div class="container">
           <div class="logo" dangerouslySetInnerHTML={{ __html: svgLogo }} />
           {children}
         </div>
         <footer class="footer">Powered by <a href="https://gremlin.group">gremlin<span class="teal-dot">.</span></a></footer>
-        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: `(function(){var btn=document.getElementById("theme-toggle");if(!btn)return;var sun='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/><\\/svg>';var moon='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/><\\/svg>';var cur=document.documentElement.getAttribute("data-theme")||"dark";btn.innerHTML=cur==="dark"?sun:moon;btn.addEventListener("click",function(){var c=document.documentElement.getAttribute("data-theme")||"dark";var n=c==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);localStorage.setItem("theme",n);btn.innerHTML=n==="dark"?sun:moon;});})();` }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: `document.getElementById("theme-toggle").addEventListener("click",function(){var c=document.documentElement.getAttribute("data-theme")||"dark";var n=c==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);localStorage.setItem("theme",n);});` }} />
       </body>
     </html>
     </>
