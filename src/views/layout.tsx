@@ -36,8 +36,8 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             --coral: #EF4444;
             --text: #E8EBF0;
             --text-muted: #A8B2C7;
-            --radius: 10px;
-            --radius-lg: 12px;
+            --radius: 6px;
+            --radius-lg: 8px;
             --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
             color-scheme: dark;
           }
@@ -46,14 +46,14 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             --bg: #F7F9FB;
             --surface: #FFFFFF;
             --surface-raised: #F0F2F5;
-            --border: #D1D5DB;
+            --border: #E5E7EB;
             --border-hover: #9CA3AF;
             --teal: #009E7E;
             --teal-dim: rgba(0, 158, 126, 0.1);
             --coral: #DC2626;
             --text: #1A1F36;
             --text-muted: #4A5568;
-            --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
             color-scheme: light;
           }
 
@@ -224,7 +224,7 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             font-family: inherit;
             font-size: 15px;
             font-weight: 600;
-            padding: 12px 24px;
+            padding: 10px 20px;
             min-height: 44px;
             transition: transform 0.1s, opacity 0.15s;
           }
@@ -256,6 +256,37 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             font-weight: 600;
           }
 
+          [data-theme=light] .btn-danger {
+            background: transparent;
+            border: 2px solid var(--coral);
+            color: var(--coral);
+          }
+
+          [data-theme=light] .btn-danger:hover {
+            background: var(--coral);
+            color: #fff;
+          }
+
+          .advanced-options {
+            margin-bottom: 20px;
+          }
+
+          .advanced-options summary {
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-muted);
+            padding: 8px 0;
+            user-select: none;
+          }
+
+          .advanced-options summary:hover {
+            color: var(--text);
+          }
+
+          .advanced-content {
+            padding-top: 12px;
+          }
+
           .row {
             display: flex;
             gap: 10px;
@@ -265,9 +296,10 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
           .link-box {
             display: block;
             background: var(--surface-raised);
-            border: 1px solid var(--teal);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--teal);
             border-radius: var(--radius);
-            color: var(--teal);
+            color: var(--text);
             font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
             font-size: 13px;
             padding: 12px 14px;

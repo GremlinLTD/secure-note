@@ -152,28 +152,33 @@ fetch("/api/stats").then(function(r) {
                 <option value="2592000">30 days</option>
               </select>
             </div>
+          </div>
 
-            <div class="form-group" id="views-group">
-              <label for="max-views">Views</label>
-              <select id="max-views" name="max-views">
-                <option value="1" selected>1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-              </select>
+          <details class="advanced-options">
+            <summary>Advanced options</summary>
+            <div class="advanced-content">
+              <div class="form-group" id="views-group">
+                <label for="max-views">Views</label>
+                <select id="max-views" name="max-views">
+                  <option value="1" selected>1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="burn-msg">Burn message (optional)</label>
+                <input type="text" id="burn-msg" name="burn-msg" placeholder="Message shown after viewing" maxlength={200} />
+              </div>
+
+              <div class="form-group">
+                <label for="allowed-ips">Restrict to IPs (optional)</label>
+                <input type="text" id="allowed-ips" name="allowed-ips" placeholder="e.g., 203.0.113.0/24, 10.0.0.5" />
+              </div>
             </div>
-          </div>
-
-          <div class="form-group">
-            <label for="burn-msg">Burn message (optional)</label>
-            <input type="text" id="burn-msg" name="burn-msg" placeholder="Message shown after viewing" maxlength={200} />
-          </div>
-
-          <div class="form-group">
-            <label for="allowed-ips">Restrict to IPs (optional)</label>
-            <input type="text" id="allowed-ips" name="allowed-ips" placeholder="e.g., 203.0.113.0/24, 10.0.0.5" />
-          </div>
+          </details>
 
           <button type="submit" id="submit-btn" class="btn btn-primary">Create Secret Link</button>
           <p id="create-error" class="warning hidden"></p>
