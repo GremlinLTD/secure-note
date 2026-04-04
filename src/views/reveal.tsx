@@ -26,7 +26,8 @@ document.getElementById("reveal-btn")?.addEventListener("click", async function(
 
     const password = document.getElementById("password")?.value || "";
 
-    const res = await fetch("/api/notes/${noteId}");
+    const noteId = ${JSON.stringify(noteId)};
+    const res = await fetch("/api/notes/" + encodeURIComponent(noteId));
     if (res.status === 404) {
       document.getElementById("note-ui").classList.add("hidden");
       document.getElementById("not-found").classList.remove("hidden");

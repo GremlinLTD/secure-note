@@ -17,7 +17,7 @@ docs.doc("/api/docs.json", {
 docs.get(
   "/api/docs",
   Scalar({
-    spec: { url: "/api/docs.json" },
+    url: "/api/docs.json",
     theme: "moon",
     pageTitle: "Gremlin Secure Note API",
   })
