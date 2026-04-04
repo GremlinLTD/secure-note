@@ -29,12 +29,13 @@ document.getElementById("create-form").addEventListener("submit", async function
     }
 
     const title = document.getElementById("title").value.trim() || undefined;
+    const burnMsg = document.getElementById("burn-msg").value.trim() || undefined;
     const { c, iv, key } = await encryptSecret(secret, password);
 
     const res = await fetch("/api/notes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ c, iv, pw: password.length > 0, ttl, title }),
+      body: JSON.stringify({ c, iv, pw: password.length > 0, ttl, title, burnMsg }),
     });
 
     if (!res.ok) {
@@ -71,6 +72,7 @@ document.getElementById("new-note-btn").addEventListener("click", function() {
   document.getElementById("title").value = "";
   document.getElementById("secret").value = "";
   document.getElementById("password").value = "";
+  document.getElementById("burn-msg").value = "";
   document.getElementById("submit-btn").disabled = false;
   document.getElementById("submit-btn").textContent = "Create Secret Link";
 });
@@ -120,6 +122,11 @@ document.getElementById("secret").addEventListener("input", function() {
                 <option value="2592000">30 days</option>
               </select>
             </div>
+          </div>
+
+          <div class="form-group">
+            <label for="burn-msg">Burn message (optional)</label>
+            <input type="text" id="burn-msg" name="burn-msg" placeholder="Message shown after viewing" maxlength={200} />
           </div>
 
           <button type="submit" id="submit-btn" class="btn btn-primary">Create Secret Link</button>

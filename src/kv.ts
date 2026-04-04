@@ -8,6 +8,7 @@ export interface NoteData {
   exp: number;
   attempts?: number;
   title?: string;
+  burnMsg?: string;
 }
 
 export interface NoteInput {
@@ -16,6 +17,7 @@ export interface NoteInput {
   pw: boolean;
   ttl: number;
   title?: string;
+  burnMsg?: string;
 }
 
 export async function saveNote(
@@ -32,6 +34,7 @@ export async function saveNote(
     exp: now + input.ttl,
     attempts: 0,
     ...(input.title ? { title: input.title } : {}),
+    ...(input.burnMsg ? { burnMsg: input.burnMsg } : {}),
   };
   await kv.put(`note:${id}`, JSON.stringify(data), {
     expirationTtl: input.ttl,
@@ -86,10 +89,15 @@ export async function deleteNote(
 export async function getNoteMetadata(
   kv: KVNamespace,
   id: string
-): Promise<{ pw: boolean; ts: number; title?: string } | null> {
+): Promise<{ pw: boolean; ts: number; title?: string; burnMsg?: string } | null> {
   const key = `note:${id}`;
   const raw = await kv.get(key);
   if (!raw) return null;
   const data = JSON.parse(raw) as NoteData;
-  return { pw: data.pw, ts: data.ts, ...(data.title ? { title: data.title } : {}) };
+  return {
+    pw: data.pw,
+    ts: data.ts,
+    ...(data.title ? { title: data.title } : {}),
+    ...(data.burnMsg ? { burnMsg: data.burnMsg } : {}),
+  };
 }
