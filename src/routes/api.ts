@@ -8,7 +8,7 @@ import {
   ErrorSchema,
   NoteIdParamSchema,
 } from "../schemas/notes";
-import { saveNote, getAndDeleteNote, getAndDecrementViews, getNoteMetadata, incrementAttempts, deleteNote } from "../kv";
+import { saveNote, getAndDeleteNote, getAndDecrementViews, getNoteMetadata, incrementAttempts, deleteNote, incrementStat, getStats } from "../kv";
 
 type Env = { Bindings: Bindings };
 
@@ -88,6 +88,7 @@ export const createNoteHandler: Parameters<
 >[1] = async (c) => {
   const { c: ciphertext, iv, pw, ttl, title, burnMsg, maxViews } = c.req.valid("json");
   const id = await saveNote(c.env.NOTES, { c: ciphertext, iv, pw, ttl, title, burnMsg, maxViews });
+  incrementStat(c.env.NOTES, "created");
   return c.json({ id }, 201);
 };
 
@@ -108,6 +109,9 @@ api.openapi(getNoteRoute, async (c) => {
       if (!result) {
         return c.json({ error: "Note not found or already destroyed" }, 404);
       }
+      if (result.remaining === 0) {
+        await incrementStat(c.env.NOTES, "burned");
+      }
       return c.json({ c: result.note.c, iv: result.note.iv, pw: result.note.pw, viewsRemaining: result.remaining }, 200);
     }
     // Non-password, single view: burn-before-return
@@ -115,6 +119,7 @@ api.openapi(getNoteRoute, async (c) => {
     if (!note) {
       return c.json({ error: "Note not found or already destroyed" }, 404);
     }
+    await incrementStat(c.env.NOTES, "burned");
     return c.json({ c: note.c, iv: note.iv, pw: note.pw }, 200);
   }
 
@@ -122,6 +127,10 @@ api.openapi(getNoteRoute, async (c) => {
   const result = await incrementAttempts(c.env.NOTES, id);
   if (!result) {
     return c.json({ error: "Note not found or already destroyed" }, 404);
+  }
+
+  if (result.remaining === 0) {
+    await incrementStat(c.env.NOTES, "burned");
   }
 
   return c.json({
@@ -132,11 +141,17 @@ api.openapi(getNoteRoute, async (c) => {
   }, 200);
 });
 
+api.get("/api/stats", async (c) => {
+  const stats = await getStats(c.env.NOTES);
+  return c.json(stats, 200);
+});
+
 api.openapi(deleteNoteRoute, async (c) => {
   const { id } = c.req.valid("param");
   const deleted = await deleteNote(c.env.NOTES, id);
   if (!deleted) {
     return c.json({ error: "Note not found or already destroyed" }, 404);
   }
+  await incrementStat(c.env.NOTES, "burned");
   return c.json({ deleted: true }, 200);
 });

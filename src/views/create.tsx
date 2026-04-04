@@ -102,6 +102,16 @@ document.getElementById("secret").addEventListener("input", function() {
     counter.textContent = "";
   }
 });
+
+fetch("/api/stats").then(function(r) {
+  return r.json();
+}).then(function(s) {
+  var el = document.getElementById("stats-count");
+  if (el && s.created > 0) {
+    el.textContent = s.created + " secret" + (s.created === 1 ? "" : "s") + " shared securely";
+    el.classList.remove("hidden");
+  }
+}).catch(function() {});
 `;
 
   return (
@@ -168,6 +178,8 @@ document.getElementById("secret").addEventListener("input", function() {
           <button id="new-note-btn" class="btn btn-secondary mt-md">Create Another</button>
         </div>
       </div>
+
+      <p id="stats-count" class="stats-count hidden"></p>
 
       <script nonce={nonce} dangerouslySetInnerHTML={{ __html: inlineScript }} />
     </Layout>

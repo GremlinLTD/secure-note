@@ -250,6 +250,57 @@ describe("POST / (alias)", () => {
   });
 });
 
+describe("GET /api/stats", () => {
+  it("returns created and burned counts", async () => {
+    const res = await app.request("/api/stats", { method: "GET" }, env);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(typeof body.created).toBe("number");
+    expect(typeof body.burned).toBe("number");
+  });
+
+  it("increments created when a note is created", async () => {
+    const before = await app.request("/api/stats", { method: "GET" }, env);
+    const { created: createdBefore } = await before.json();
+
+    await app.request(
+      "/api/notes",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ c: "stat-test", iv: "iv", pw: false, ttl: 3600 }),
+      },
+      env
+    );
+
+    const after = await app.request("/api/stats", { method: "GET" }, env);
+    const { created: createdAfter } = await after.json();
+    expect(createdAfter).toBe(createdBefore + 1);
+  });
+
+  it("increments burned when a single-view note is read", async () => {
+    const create = await app.request(
+      "/api/notes",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ c: "burn-stat", iv: "iv", pw: false, ttl: 3600 }),
+      },
+      env
+    );
+    const { id } = await create.json();
+
+    const before = await app.request("/api/stats", { method: "GET" }, env);
+    const { burned: burnedBefore } = await before.json();
+
+    await app.request(`/api/notes/${id}`, { method: "GET" }, env);
+
+    const after = await app.request("/api/stats", { method: "GET" }, env);
+    const { burned: burnedAfter } = await after.json();
+    expect(burnedAfter).toBe(burnedBefore + 1);
+  });
+});
+
 describe("GET /health", () => {
   it("returns ok", async () => {
     const res = await app.request("/health", { method: "GET" }, env);

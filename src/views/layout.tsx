@@ -341,6 +341,13 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             color: var(--coral);
           }
 
+          .stats-count {
+            color: var(--text-muted);
+            font-size: 13px;
+            text-align: center;
+            margin-top: 16px;
+          }
+
           .note-title {
             font-size: 18px;
             font-weight: 600;
