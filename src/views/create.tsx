@@ -29,12 +29,16 @@ document.getElementById("create-form").addEventListener("submit", async function
     }
 
     const title = document.getElementById("title").value.trim() || undefined;
+    const burnMsg = document.getElementById("burn-msg").value.trim() || undefined;
+    const hasPw = password.length > 0;
+    const maxViewsEl = document.getElementById("max-views");
+    const maxViews = (!hasPw && maxViewsEl) ? Number(maxViewsEl.value) : 1;
     const { c, iv, key } = await encryptSecret(secret, password);
 
     const res = await fetch("/api/notes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ c, iv, pw: password.length > 0, ttl, title }),
+      body: JSON.stringify({ c, iv, pw: hasPw, ttl, title, burnMsg, maxViews }),
     });
 
     if (!res.ok) {
@@ -71,8 +75,20 @@ document.getElementById("new-note-btn").addEventListener("click", function() {
   document.getElementById("title").value = "";
   document.getElementById("secret").value = "";
   document.getElementById("password").value = "";
+  document.getElementById("burn-msg").value = "";
+  var maxViewsEl = document.getElementById("max-views");
+  if (maxViewsEl) { maxViewsEl.value = "1"; }
+  var viewsGroup = document.getElementById("views-group");
+  if (viewsGroup) { viewsGroup.classList.remove("hidden"); }
   document.getElementById("submit-btn").disabled = false;
   document.getElementById("submit-btn").textContent = "Create Secret Link";
+});
+
+document.getElementById("password").addEventListener("input", function() {
+  var viewsGroup = document.getElementById("views-group");
+  if (viewsGroup) {
+    viewsGroup.classList.toggle("hidden", this.value.length > 0);
+  }
 });
 
 var maxSize = 1048576;
@@ -86,6 +102,16 @@ document.getElementById("secret").addEventListener("input", function() {
     counter.textContent = "";
   }
 });
+
+fetch("/api/stats").then(function(r) {
+  return r.json();
+}).then(function(s) {
+  var el = document.getElementById("stats-count");
+  if (el && s.created > 0) {
+    el.textContent = s.created + " secret" + (s.created === 1 ? "" : "s") + " shared securely";
+    el.classList.remove("hidden");
+  }
+}).catch(function() {});
 `;
 
   return (
@@ -120,6 +146,22 @@ document.getElementById("secret").addEventListener("input", function() {
                 <option value="2592000">30 days</option>
               </select>
             </div>
+
+            <div class="form-group" id="views-group">
+              <label for="max-views">Views</label>
+              <select id="max-views" name="max-views">
+                <option value="1" selected>1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="burn-msg">Burn message (optional)</label>
+            <input type="text" id="burn-msg" name="burn-msg" placeholder="Message shown after viewing" maxlength={200} />
           </div>
 
           <button type="submit" id="submit-btn" class="btn btn-primary">Create Secret Link</button>
@@ -136,6 +178,8 @@ document.getElementById("secret").addEventListener("input", function() {
           <button id="new-note-btn" class="btn btn-secondary mt-md">Create Another</button>
         </div>
       </div>
+
+      <p id="stats-count" class="stats-count hidden"></p>
 
       <script nonce={nonce} dangerouslySetInnerHTML={{ __html: inlineScript }} />
     </Layout>

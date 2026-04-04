@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { env } from "cloudflare:test";
-import { saveNote, getAndDeleteNote, getNoteMetadata, incrementAttempts, deleteNote } from "../src/kv";
+import { saveNote, getAndDeleteNote, getAndDecrementViews, getNoteMetadata, incrementAttempts, deleteNote } from "../src/kv";
 
 describe("KV helpers", () => {
   it("saves and retrieves a note", async () => {
@@ -98,6 +98,67 @@ describe("incrementAttempts", () => {
 
     const r4 = await incrementAttempts(env.NOTES, id);
     expect(r4).toBeNull();
+  });
+});
+
+describe("getAndDecrementViews", () => {
+  it("allows multiple views and burns on the last one", async () => {
+    const id = await saveNote(env.NOTES, {
+      c: "multi",
+      iv: "iv",
+      pw: false,
+      ttl: 3600,
+      maxViews: 3,
+    });
+
+    const r1 = await getAndDecrementViews(env.NOTES, id);
+    expect(r1).not.toBeNull();
+    expect(r1!.remaining).toBe(2);
+
+    const r2 = await getAndDecrementViews(env.NOTES, id);
+    expect(r2).not.toBeNull();
+    expect(r2!.remaining).toBe(1);
+
+    const r3 = await getAndDecrementViews(env.NOTES, id);
+    expect(r3).not.toBeNull();
+    expect(r3!.remaining).toBe(0);
+
+    const r4 = await getAndDecrementViews(env.NOTES, id);
+    expect(r4).toBeNull();
+  });
+
+  it("returns null for non-existent note", async () => {
+    const r = await getAndDecrementViews(env.NOTES, "00000000-0000-4000-8000-000000000000");
+    expect(r).toBeNull();
+  });
+});
+
+describe("burnMsg", () => {
+  it("stores and returns burnMsg in metadata", async () => {
+    const id = await saveNote(env.NOTES, {
+      c: "burn-test",
+      iv: "iv",
+      pw: false,
+      ttl: 3600,
+      burnMsg: "Thanks for reading!",
+    });
+
+    const meta = await getNoteMetadata(env.NOTES, id);
+    expect(meta).not.toBeNull();
+    expect(meta!.burnMsg).toBe("Thanks for reading!");
+  });
+
+  it("omits burnMsg from metadata when not set", async () => {
+    const id = await saveNote(env.NOTES, {
+      c: "no-burn-msg",
+      iv: "iv",
+      pw: false,
+      ttl: 3600,
+    });
+
+    const meta = await getNoteMetadata(env.NOTES, id);
+    expect(meta).not.toBeNull();
+    expect(meta!.burnMsg).toBeUndefined();
   });
 });
 
