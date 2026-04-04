@@ -1,4 +1,5 @@
 import type { FC, PropsWithChildren } from "hono/jsx";
+import { raw } from "hono/html";
 
 type LayoutProps = PropsWithChildren<{
   title: string;
@@ -13,6 +14,8 @@ const svgLogo = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 60" fi
 
 export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
   return (
+    <>
+    {raw('<!DOCTYPE html>')}
     <html lang="en">
       <head>
         <meta charset="UTF-8" />
@@ -278,5 +281,6 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
         <footer class="footer">Powered by <a href="https://gremlin.group">gremlin<span style="color: var(--teal)">.</span></a></footer>
       </body>
     </html>
+    </>
   );
 };
