@@ -99,12 +99,12 @@ document.getElementById("copy-btn").addEventListener("click", function() {
 
         <div id="result" class="hidden">
           <p class="success">Your secret link is ready. Share it once, it will be destroyed after viewing.</p>
-          <div class="form-group" style="margin-top:16px;">
+          <div class="form-group mt-md">
             <label>Share URL</label>
             <a id="share-url" class="link-box" href="#" target="_blank" rel="noopener noreferrer"></a>
           </div>
           <button id="copy-btn" class="btn btn-primary">Copy Link</button>
-          <p class="warning" style="margin-top:16px;">This link can only be viewed once. After that, the note is permanently destroyed.</p>
+          <p class="warning mt-md">This link can only be viewed once. After that, the note is permanently destroyed.</p>
         </div>
       </div>
 
