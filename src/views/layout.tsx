@@ -33,11 +33,11 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             --border-hover: #3D4663;
             --teal: #00D4AA;
             --teal-dim: rgba(0, 212, 170, 0.1);
-            --coral: #FF6B6B;
+            --coral: #EF4444;
             --text: #E8EBF0;
             --text-muted: #A8B2C7;
             --radius: 10px;
-            --radius-lg: 14px;
+            --radius-lg: 12px;
             --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
             color-scheme: dark;
           }
@@ -249,6 +249,7 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
           .btn-danger {
             background: var(--coral);
             color: #fff;
+            font-weight: 600;
           }
 
           .row {
@@ -366,6 +367,39 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             font-weight: 600;
             color: var(--text);
             margin-bottom: 8px;
+          }
+
+          .info-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--surface-raised);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 8px 12px;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 12px;
+            margin-bottom: 8px;
+          }
+
+          .info-badge svg {
+            flex-shrink: 0;
+          }
+
+          .reveal-header {
+            text-align: center;
+            padding: 8px 0 16px;
+          }
+
+          .reveal-header h1 {
+            margin-bottom: 12px;
+          }
+
+          .lock-icon {
+            display: inline-block;
+            margin-bottom: 16px;
+            color: var(--text-muted);
           }
 
           .teal-dot { color: var(--teal); }
