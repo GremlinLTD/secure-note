@@ -75,6 +75,6 @@ pages.get("/note/:id", async (c) => {
   }
 
   return c.html(
-    RevealPage({ nonce, noteId: id, hasPassword: meta.pw, notFound: false, decryptScript: getDecryptScript() }) as any
+    RevealPage({ nonce, noteId: id, hasPassword: meta.pw, notFound: false, decryptScript: getDecryptScript(), title: meta.title }) as any
   );
 });

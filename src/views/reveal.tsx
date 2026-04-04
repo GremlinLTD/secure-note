@@ -7,9 +7,10 @@ type RevealPageProps = {
   hasPassword: boolean;
   notFound: boolean;
   decryptScript: string;
+  title?: string;
 };
 
-export const RevealPage: FC<RevealPageProps> = ({ nonce, noteId, hasPassword, notFound, decryptScript }) => {
+export const RevealPage: FC<RevealPageProps> = ({ nonce, noteId, hasPassword, notFound, decryptScript, title }) => {
   const inlineScript = `
 ${decryptScript}
 
@@ -49,9 +50,15 @@ document.getElementById("reveal-form")?.addEventListener("submit", async functio
     }
 
     document.getElementById("secret-content").textContent = plaintext;
-    document.getElementById("secret-box").classList.remove("hidden");
-    document.getElementById("reveal-form").classList.add("hidden");
-    document.getElementById("burned-notice").classList.remove("hidden");
+    var form = document.getElementById("reveal-form");
+    form.classList.add("fade-out");
+    form.addEventListener("animationend", function() {
+      form.classList.add("hidden");
+      document.getElementById("secret-box").classList.remove("hidden");
+      document.getElementById("secret-box").classList.add("fade-in");
+      document.getElementById("burned-notice").classList.remove("hidden");
+      document.getElementById("burned-notice").classList.add("fade-in");
+    }, { once: true });
   } catch (err) {
     btn.disabled = false;
     btn.textContent = "Reveal Secret";
@@ -106,6 +113,7 @@ document.getElementById("copy-secret-btn")?.addEventListener("click", function()
       <div class="card">
         <div id="note-ui">
           <h1>Secure Note</h1>
+          {title && <h2 class="note-title">{title}</h2>}
           <p class="subtitle">
             {hasPassword
               ? "You have received a password-protected secure note. You have 3 attempts to enter the correct password."

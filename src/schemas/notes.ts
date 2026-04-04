@@ -9,6 +9,7 @@ export const CreateNoteSchema = z
       .union([z.literal(3600), z.literal(86400), z.literal(604800), z.literal(2592000)])
       .default(604800)
       .openapi({ description: "Time-to-live in seconds" }),
+    title: z.string().max(100).optional().openapi({ description: "Optional title shown to recipient before reveal" }),
   })
   .openapi("CreateNote");
 
