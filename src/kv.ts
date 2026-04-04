@@ -128,3 +128,21 @@ export async function getAndDecrementViews(
   await kv.put(key, JSON.stringify(note), { expiration: note.exp });
   return { note, remaining: maxViews - views };
 }
+
+export async function incrementStat(kv: KVNamespace, key: string): Promise<void> {
+  const statKey = `stats:${key}`;
+  const raw = await kv.get(statKey);
+  const current = raw ? Number(raw) : 0;
+  await kv.put(statKey, String(current + 1));
+}
+
+export async function getStats(kv: KVNamespace): Promise<{ created: number; burned: number }> {
+  const [createdRaw, burnedRaw] = await Promise.all([
+    kv.get("stats:created"),
+    kv.get("stats:burned"),
+  ]);
+  return {
+    created: createdRaw ? Number(createdRaw) : 0,
+    burned: burnedRaw ? Number(burnedRaw) : 0,
+  };
+}
