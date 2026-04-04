@@ -301,6 +301,90 @@ describe("GET /api/stats", () => {
   });
 });
 
+describe("IP restriction", () => {
+  it("allows access when IP matches allowedIps", async () => {
+    const create = await app.request(
+      "/api/notes",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ c: "ip-secret", iv: "iv", pw: false, ttl: 3600, allowedIps: ["10.0.0.1"] }),
+      },
+      env
+    );
+    const { id } = await create.json();
+
+    const get = await app.request(
+      `/api/notes/${id}`,
+      { method: "GET", headers: { "x-forwarded-for": "10.0.0.1" } },
+      env
+    );
+    expect(get.status).toBe(200);
+  });
+
+  it("denies access when IP does not match allowedIps", async () => {
+    const create = await app.request(
+      "/api/notes",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ c: "ip-secret", iv: "iv", pw: false, ttl: 3600, allowedIps: ["10.0.0.1"] }),
+      },
+      env
+    );
+    const { id } = await create.json();
+
+    const get = await app.request(
+      `/api/notes/${id}`,
+      { method: "GET", headers: { "x-forwarded-for": "10.0.0.2" } },
+      env
+    );
+    expect(get.status).toBe(403);
+    const body = await get.json();
+    expect(body.error).toContain("Access denied");
+  });
+
+  it("allows any IP when note has no allowedIps", async () => {
+    const create = await app.request(
+      "/api/notes",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ c: "open-secret", iv: "iv", pw: false, ttl: 3600 }),
+      },
+      env
+    );
+    const { id } = await create.json();
+
+    const get = await app.request(
+      `/api/notes/${id}`,
+      { method: "GET", headers: { "x-forwarded-for": "1.2.3.4" } },
+      env
+    );
+    expect(get.status).toBe(200);
+  });
+
+  it("denies DELETE when IP does not match allowedIps", async () => {
+    const create = await app.request(
+      "/api/notes",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ c: "del-secret", iv: "iv", pw: true, ttl: 3600, allowedIps: ["10.0.0.1"] }),
+      },
+      env
+    );
+    const { id } = await create.json();
+
+    const del = await app.request(
+      `/api/notes/${id}`,
+      { method: "DELETE", headers: { "x-forwarded-for": "10.0.0.99" } },
+      env
+    );
+    expect(del.status).toBe(403);
+  });
+});
+
 describe("GET /health", () => {
   it("returns ok", async () => {
     const res = await app.request("/health", { method: "GET" }, env);

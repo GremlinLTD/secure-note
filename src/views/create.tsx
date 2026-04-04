@@ -33,12 +33,14 @@ document.getElementById("create-form").addEventListener("submit", async function
     const hasPw = password.length > 0;
     const maxViewsEl = document.getElementById("max-views");
     const maxViews = (!hasPw && maxViewsEl) ? Number(maxViewsEl.value) : 1;
+    const allowedIpsRaw = document.getElementById("allowed-ips").value.trim();
+    const allowedIps = allowedIpsRaw ? allowedIpsRaw.split(",").map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; }) : undefined;
     const { c, iv, key } = await encryptSecret(secret, password);
 
     const res = await fetch("/api/notes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ c, iv, pw: hasPw, ttl, title, burnMsg, maxViews }),
+      body: JSON.stringify({ c, iv, pw: hasPw, ttl, title, burnMsg, maxViews, allowedIps }),
     });
 
     if (!res.ok) {
@@ -76,6 +78,7 @@ document.getElementById("new-note-btn").addEventListener("click", function() {
   document.getElementById("secret").value = "";
   document.getElementById("password").value = "";
   document.getElementById("burn-msg").value = "";
+  document.getElementById("allowed-ips").value = "";
   var maxViewsEl = document.getElementById("max-views");
   if (maxViewsEl) { maxViewsEl.value = "1"; }
   var viewsGroup = document.getElementById("views-group");
@@ -162,6 +165,11 @@ fetch("/api/stats").then(function(r) {
           <div class="form-group">
             <label for="burn-msg">Burn message (optional)</label>
             <input type="text" id="burn-msg" name="burn-msg" placeholder="Message shown after viewing" maxlength={200} />
+          </div>
+
+          <div class="form-group">
+            <label for="allowed-ips">Restrict to IPs (optional)</label>
+            <input type="text" id="allowed-ips" name="allowed-ips" placeholder="e.g., 203.0.113.0/24, 10.0.0.5" />
           </div>
 
           <button type="submit" id="submit-btn" class="btn btn-primary">Create Secret Link</button>
