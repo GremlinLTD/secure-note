@@ -7,9 +7,10 @@ type RevealPageProps = {
   hasPassword: boolean;
   notFound: boolean;
   decryptScript: string;
+  title?: string;
 };
 
-export const RevealPage: FC<RevealPageProps> = ({ nonce, noteId, hasPassword, notFound, decryptScript }) => {
+export const RevealPage: FC<RevealPageProps> = ({ nonce, noteId, hasPassword, notFound, decryptScript, title }) => {
   const inlineScript = `
 ${decryptScript}
 
@@ -106,6 +107,7 @@ document.getElementById("copy-secret-btn")?.addEventListener("click", function()
       <div class="card">
         <div id="note-ui">
           <h1>Secure Note</h1>
+          {title && <h2 class="note-title">{title}</h2>}
           <p class="subtitle">
             {hasPassword
               ? "You have received a password-protected secure note. You have 3 attempts to enter the correct password."
