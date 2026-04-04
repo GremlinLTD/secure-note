@@ -110,6 +110,11 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             border-color: var(--teal);
           }
 
+          .theme-toggle:focus-visible {
+            outline: 2px solid var(--teal);
+            outline-offset: 2px;
+          }
+
           .card {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -371,13 +376,13 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
         `}</style>
       </head>
       <body>
-        <button id="theme-toggle" class="theme-toggle">&#x2600;</button>
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark theme">&#x2600;</button>
         <div class="container">
           <div class="logo" dangerouslySetInnerHTML={{ __html: svgLogo }} />
           {children}
         </div>
         <footer class="footer">Powered by <a href="https://gremlin.group">gremlin<span class="teal-dot">.</span></a></footer>
-        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: `document.getElementById("theme-toggle").addEventListener("click",function(){var current=document.documentElement.getAttribute("data-theme")||"dark";var next=current==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",next);localStorage.setItem("theme",next);this.textContent=next==="dark"?"\u2600":"\u263E";});` }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: `(function(){var btn=document.getElementById("theme-toggle");if(!btn)return;var cur=document.documentElement.getAttribute("data-theme")||"dark";btn.textContent=cur==="dark"?"\u2600":"\u263E";btn.addEventListener("click",function(){var c=document.documentElement.getAttribute("data-theme")||"dark";var n=c==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);localStorage.setItem("theme",n);btn.textContent=n==="dark"?"\u2600":"\u263E";});})();` }} />
       </body>
     </html>
     </>
