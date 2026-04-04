@@ -8,7 +8,7 @@ type LayoutProps = PropsWithChildren<{
 
 const svgLogo = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 60" fill="none">
   <text x="0" y="46" font-family="Inter, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="52" font-weight="700" letter-spacing="-0.02em">
-    <tspan fill="#FFFFFF">gremlin</tspan><tspan fill="#00D4AA">.</tspan>
+    <tspan fill="currentColor">gremlin</tspan><tspan fill="#00D4AA">.</tspan>
   </text>
 </svg>`;
 
@@ -21,6 +21,7 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{title}</title>
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: `(function(){var t=localStorage.getItem("theme");if(t)document.documentElement.setAttribute("data-theme",t);else if(window.matchMedia("(prefers-color-scheme: light)").matches)document.documentElement.setAttribute("data-theme","light");})();` }} />
         <style nonce={nonce}>{`
           *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -39,6 +40,21 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             --radius-lg: 14px;
             --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
             color-scheme: dark;
+          }
+
+          [data-theme="light"] {
+            --bg: #F7F9FB;
+            --surface: #FFFFFF;
+            --surface-raised: #F0F2F5;
+            --border: #D1D5DB;
+            --border-hover: #9CA3AF;
+            --teal: #009E7E;
+            --teal-dim: rgba(0, 158, 126, 0.1);
+            --coral: #DC2626;
+            --text: #1A1F36;
+            --text-muted: #556178;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            color-scheme: light;
           }
 
           body {
@@ -63,11 +79,35 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
           .logo {
             text-align: center;
             margin-bottom: 36px;
+            color: var(--text);
           }
 
           .logo svg {
             height: 36px;
             width: auto;
+          }
+
+          .theme-toggle {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            font-size: 18px;
+            cursor: pointer;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.2s;
+            z-index: 10;
+          }
+
+          .theme-toggle:hover {
+            border-color: var(--teal);
           }
 
           .card {
@@ -306,11 +346,13 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
         `}</style>
       </head>
       <body>
+        <button id="theme-toggle" class="theme-toggle">&#x2600;</button>
         <div class="container">
           <div class="logo" dangerouslySetInnerHTML={{ __html: svgLogo }} />
           {children}
         </div>
         <footer class="footer">Powered by <a href="https://gremlin.group">gremlin<span class="teal-dot">.</span></a></footer>
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: `document.getElementById("theme-toggle").addEventListener("click",function(){var current=document.documentElement.getAttribute("data-theme")||"dark";var next=current==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",next);localStorage.setItem("theme",next);this.textContent=next==="dark"?"\u2600":"\u263E";});` }} />
       </body>
     </html>
     </>
