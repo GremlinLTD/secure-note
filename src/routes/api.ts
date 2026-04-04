@@ -152,6 +152,12 @@ api.delete("/api/notes/:id", async (c) => {
     return c.json({ error: "Note not found or already destroyed" }, 404);
   }
 
+  // Only allow DELETE if the note has been retrieved at least once (attempts > 0).
+  // This prevents blind deletion by UUID without having the decryption key.
+  if (meta.attempts < 1) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
   const clientIp = getClientIp(c);
   if (meta.allowedIps && !isIpAllowed(clientIp, meta.allowedIps)) {
     return c.json({ error: "Access denied. This note is restricted to specific IP addresses." }, 403);
@@ -161,6 +167,6 @@ api.delete("/api/notes/:id", async (c) => {
   if (!deleted) {
     return c.json({ error: "Note not found or already destroyed" }, 404);
   }
-  await incrementStat(c.env.NOTES, "burned");
+  incrementStat(c.env.NOTES, "burned").catch(() => {});
   return c.json({ deleted: true }, 200);
 });
