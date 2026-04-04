@@ -104,6 +104,39 @@ describe("GET /api/notes/:id (non-password)", () => {
   });
 });
 
+describe("GET /api/notes/:id (multi-view)", () => {
+  it("allows multiple reads and burns on the last view", async () => {
+    const create = await app.request(
+      "/api/notes",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ c: "multi", iv: "iv", pw: false, ttl: 3600, maxViews: 3 }),
+      },
+      env
+    );
+    const { id } = await create.json();
+
+    const get1 = await app.request(`/api/notes/${id}`, { method: "GET" }, env);
+    expect(get1.status).toBe(200);
+    const note1 = await get1.json();
+    expect(note1.viewsRemaining).toBe(2);
+
+    const get2 = await app.request(`/api/notes/${id}`, { method: "GET" }, env);
+    expect(get2.status).toBe(200);
+    const note2 = await get2.json();
+    expect(note2.viewsRemaining).toBe(1);
+
+    const get3 = await app.request(`/api/notes/${id}`, { method: "GET" }, env);
+    expect(get3.status).toBe(200);
+    const note3 = await get3.json();
+    expect(note3.viewsRemaining).toBe(0);
+
+    const get4 = await app.request(`/api/notes/${id}`, { method: "GET" }, env);
+    expect(get4.status).toBe(404);
+  });
+});
+
 describe("GET /api/notes/:id (password-protected)", () => {
   it("does not burn on first read, returns attempts remaining", async () => {
     const create = await app.request(
