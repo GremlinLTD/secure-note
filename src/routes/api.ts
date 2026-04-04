@@ -14,6 +14,14 @@ type Env = { Bindings: Bindings };
 
 export const api = new OpenAPIHono<Env>();
 
+function getClientIp(c: { req: { header: (name: string) => string | undefined } }): string {
+  const cfIp = c.req.header("cf-connecting-ip");
+  if (cfIp) return cfIp.trim();
+  const xff = c.req.header("x-forwarded-for");
+  if (xff) return xff.split(",")[0].trim();
+  return "unknown";
+}
+
 export const createNoteRoute = createRoute({
   method: "post",
   path: "/api/notes",
@@ -96,7 +104,7 @@ export const createNoteHandler: Parameters<
 >[1] = async (c) => {
   const { c: ciphertext, iv, pw, ttl, title, burnMsg, maxViews, allowedIps } = c.req.valid("json");
   const id = await saveNote(c.env.NOTES, { c: ciphertext, iv, pw, ttl, title, burnMsg, maxViews, allowedIps });
-  incrementStat(c.env.NOTES, "created");
+  incrementStat(c.env.NOTES, "created").catch(() => {});
   return c.json({ id }, 201);
 };
 
@@ -111,7 +119,7 @@ api.openapi(getNoteRoute, async (c) => {
     return c.json({ error: "Note not found or already destroyed" }, 404);
   }
 
-  const clientIp = c.req.header("cf-connecting-ip") || c.req.header("x-forwarded-for") || "unknown";
+  const clientIp = getClientIp(c);
   if (meta.allowedIps && !isIpAllowed(clientIp, meta.allowedIps)) {
     return c.json({ error: "Access denied. This note is restricted to specific IP addresses." }, 403);
   }
@@ -123,7 +131,7 @@ api.openapi(getNoteRoute, async (c) => {
         return c.json({ error: "Note not found or already destroyed" }, 404);
       }
       if (result.remaining === 0) {
-        await incrementStat(c.env.NOTES, "burned");
+        incrementStat(c.env.NOTES, "burned").catch(() => {});
       }
       return c.json({ c: result.note.c, iv: result.note.iv, pw: result.note.pw, viewsRemaining: result.remaining }, 200);
     }
@@ -167,7 +175,7 @@ api.openapi(deleteNoteRoute, async (c) => {
     return c.json({ error: "Note not found or already destroyed" }, 404);
   }
 
-  const clientIp = c.req.header("cf-connecting-ip") || c.req.header("x-forwarded-for") || "unknown";
+  const clientIp = getClientIp(c);
   if (meta.allowedIps && !isIpAllowed(clientIp, meta.allowedIps)) {
     return c.json({ error: "Access denied. This note is restricted to specific IP addresses." }, 403);
   }
