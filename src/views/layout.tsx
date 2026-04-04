@@ -100,13 +100,15 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             margin-bottom: 6px;
           }
 
-          input[type="text"],
-          input[type="password"],
+          input,
           textarea,
           select {
+            display: block;
             width: 100%;
+            max-width: 100%;
             appearance: none;
             -webkit-appearance: none;
+            -moz-appearance: none;
             background: var(--surface-raised);
             border: 1px solid var(--border);
             border-radius: var(--radius);
@@ -118,14 +120,12 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             transition: border-color 0.2s, box-shadow 0.2s;
           }
 
-          input[type="text"]::placeholder,
-          input[type="password"]::placeholder,
+          input::placeholder,
           textarea::placeholder {
             color: #556178;
           }
 
-          input[type="text"]:focus,
-          input[type="password"]:focus,
+          input:focus,
           textarea:focus,
           select:focus {
             border-color: var(--teal);
@@ -260,6 +260,10 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
 
           .hidden { display: none; }
 
+          .mt-md { margin-top: 16px; }
+
+          .teal-dot { color: var(--teal); }
+
           .footer {
             color: #556178;
             font-size: 12px;
@@ -278,7 +282,7 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
           <div class="logo" dangerouslySetInnerHTML={{ __html: svgLogo }} />
           {children}
         </div>
-        <footer class="footer">Powered by <a href="https://gremlin.group">gremlin<span style="color: var(--teal)">.</span></a></footer>
+        <footer class="footer">Powered by <a href="https://gremlin.group">gremlin<span class="teal-dot">.</span></a></footer>
       </body>
     </html>
     </>
