@@ -33,7 +33,12 @@ async function encryptSecret(plaintext, password) {
   const encoded = new TextEncoder().encode(plaintext);
   const cipherBuf = await crypto.subtle.encrypt({ name: "AES-GCM", iv, tagLength: 128 }, aesKey, encoded);
 
-  const toB64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
+  const toB64 = (buf) => {
+    const bytes = new Uint8Array(buf);
+    let bin = "";
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  };
   const toB64url = (buf) => toB64(buf).replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=/g, "");
 
   return {

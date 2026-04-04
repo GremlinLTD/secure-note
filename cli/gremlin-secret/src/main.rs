@@ -13,8 +13,8 @@ struct Args {
     #[arg(long, default_value = "https://secure.gremlin.group")]
     base_url: String,
 
-    #[arg(long, default_value = "604800")]
-    ttl: u32,
+    #[arg(long, default_value = "604800", value_parser = clap::builder::PossibleValuesParser::new(["3600", "86400", "604800", "2592000"]))]
+    ttl: String,
 
     #[arg(long, help = "Prompt for a password interactively")]
     password: bool,
@@ -39,6 +39,8 @@ fn to_base64url(bytes: &[u8]) -> String {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
+    let base_url = args.base_url.trim_end_matches('/');
+    let ttl: u32 = args.ttl.parse()?;
 
     let mut secret = String::new();
     io::stdin().read_to_string(&mut secret)?;
@@ -73,12 +75,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         c: general_purpose::STANDARD.encode(&ciphertext),
         iv: general_purpose::STANDARD.encode(&iv_bytes),
         pw: args.password,
-        ttl: args.ttl,
+        ttl,
     };
 
     let client = reqwest::blocking::Client::new();
     let res = client
-        .post(format!("{}/api/notes", args.base_url))
+        .post(format!("{}/api/notes", base_url))
         .json(&req)
         .send()?;
 
@@ -90,7 +92,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let resp: CreateResponse = res.json()?;
     let raw_key_b64 = to_base64url(&raw_key);
-    println!("{}/note/{}#{}", args.base_url, resp.id, raw_key_b64);
+    println!("{}/note/{}#{}", base_url, resp.id, raw_key_b64);
 
     Ok(())
 }

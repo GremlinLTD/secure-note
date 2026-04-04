@@ -41,7 +41,8 @@ document.getElementById("create-form").addEventListener("submit", async function
     }
 
     const { id } = await res.json();
-    const url = "${baseUrl}/note/" + id + "#" + key;
+    const baseUrl = ${JSON.stringify(baseUrl)};
+    const url = baseUrl + "/note/" + id + "#" + key;
 
     document.getElementById("share-url").textContent = url;
     document.getElementById("share-url").setAttribute("href", url);
@@ -73,7 +74,7 @@ document.getElementById("copy-btn").addEventListener("click", function() {
         <form id="create-form">
           <div class="form-group">
             <label for="secret">Secret</label>
-            <textarea id="secret" name="secret" placeholder="Enter your secret message…" required />
+            <textarea id="secret" name="secret" placeholder="Enter your secret message..." required></textarea>
           </div>
 
           <div class="form-group">

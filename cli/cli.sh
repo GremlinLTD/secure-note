@@ -17,6 +17,9 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+# Strip trailing slash from BASE_URL
+BASE_URL="${BASE_URL%/}"
+
 SECRET="$(cat)"
 if [ -z "$SECRET" ]; then
   echo "Error: no secret provided on stdin" >&2
