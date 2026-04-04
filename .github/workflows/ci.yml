@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+  pull_request:
+    branches:
+      - main
+      - "feature/**"
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - run: bunx vitest run
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - run: bunx tsc --noEmit
+
+  build-cli:
+    name: Build Rust CLI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            cli/gremlin-secret/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('cli/gremlin-secret/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - run: cargo build
+        working-directory: cli/gremlin-secret
