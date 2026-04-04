@@ -283,6 +283,13 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             color: var(--coral);
           }
 
+          .note-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+          }
+
           .teal-dot { color: var(--teal); }
 
           .footer {

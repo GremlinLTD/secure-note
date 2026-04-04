@@ -28,12 +28,13 @@ document.getElementById("create-form").addEventListener("submit", async function
       return;
     }
 
+    const title = document.getElementById("title").value.trim() || undefined;
     const { c, iv, key } = await encryptSecret(secret, password);
 
     const res = await fetch("/api/notes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ c, iv, pw: password.length > 0, ttl }),
+      body: JSON.stringify({ c, iv, pw: password.length > 0, ttl, title }),
     });
 
     if (!res.ok) {
@@ -67,6 +68,7 @@ document.getElementById("copy-btn").addEventListener("click", function() {
 document.getElementById("new-note-btn").addEventListener("click", function() {
   document.getElementById("result").classList.add("hidden");
   document.getElementById("create-form").classList.remove("hidden");
+  document.getElementById("title").value = "";
   document.getElementById("secret").value = "";
   document.getElementById("password").value = "";
   document.getElementById("submit-btn").disabled = false;
@@ -93,6 +95,11 @@ document.getElementById("secret").addEventListener("input", function() {
         <p class="subtitle">Your secret is encrypted in-browser before being stored. Only the recipient with the link can read it. It self-destructs after one view.</p>
 
         <form id="create-form">
+          <div class="form-group">
+            <label for="title">Title (optional)</label>
+            <input type="text" id="title" name="title" placeholder="e.g. SSH key for production server" maxlength={100} />
+          </div>
+
           <div class="form-group">
             <label for="secret">Secret <span id="size-counter" class="size-counter"></span></label>
             <textarea id="secret" name="secret" placeholder="Enter your secret message..." required></textarea>
