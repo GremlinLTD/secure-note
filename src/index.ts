@@ -16,7 +16,7 @@ const sizeGuard = async (c: any, next: any) => {
     const maxSize = Number(c.env.MAX_NOTE_SIZE ?? 1048576);
     const contentLength = Number(c.req.header("Content-Length") ?? 0);
     if (contentLength > maxSize) {
-      return c.json({ error: "Payload too large" }, 413);
+      return c.json({ error: "Note too large" }, 413);
     }
   }
   await next();
