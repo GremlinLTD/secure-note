@@ -13,5 +13,4 @@ DEFAULT_TTL = "604800"
 
 [[kv_namespaces]]
 binding = "NOTES"
-id = "placeholder-create-via-wrangler"
-preview_id = "placeholder-create-via-wrangler"
+id = "b6e8ffcea285447e8675869bcd9ef7a5"
