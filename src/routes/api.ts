@@ -1,5 +1,5 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
-import { z } from "@hono/zod-openapi";
+
 import type { Bindings } from "../types";
 import {
   CreateNoteSchema,
@@ -73,31 +73,8 @@ const getNoteRoute = createRoute({
   },
 });
 
-const deleteNoteRoute = createRoute({
-  method: "delete",
-  path: "/api/notes/{id}",
-  request: {
-    params: NoteIdParamSchema,
-  },
-  responses: {
-    200: {
-      content: { "application/json": { schema: z.object({ deleted: z.boolean() }).openapi("DeleteNoteResponse") } },
-      description: "Confirm burn after successful decryption (password-protected notes only)",
-    },
-    400: {
-      content: { "application/json": { schema: ErrorSchema } },
-      description: "Invalid UUID",
-    },
-    403: {
-      content: { "application/json": { schema: ErrorSchema } },
-      description: "Access denied due to IP restriction",
-    },
-    404: {
-      content: { "application/json": { schema: ErrorSchema } },
-      description: "Note not found",
-    },
-  },
-});
+// DELETE is internal-only (called by reveal page JS after successful decryption).
+// Not registered with OpenAPI to keep it out of public API docs.
 
 export const createNoteHandler: Parameters<
   typeof api.openapi<typeof createNoteRoute>
@@ -167,8 +144,8 @@ api.get("/api/stats", async (c) => {
   return c.json(stats, 200);
 });
 
-api.openapi(deleteNoteRoute, async (c) => {
-  const { id } = c.req.valid("param");
+api.delete("/api/notes/:id", async (c) => {
+  const id = c.req.param("id");
 
   const meta = await getNoteMetadata(c.env.NOTES, id);
   if (!meta) {
