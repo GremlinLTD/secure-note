@@ -42,7 +42,7 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             color-scheme: dark;
           }
 
-          [data-theme="light"] {
+          [data-theme=light] {
             --bg: #F7F9FB;
             --surface: #FFFFFF;
             --surface-raised: #F0F2F5;
@@ -116,8 +116,8 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
           }
 
           .icon-moon { display: none; }
-          [data-theme="light"] .icon-sun { display: none; }
-          [data-theme="light"] .icon-moon { display: inline; }
+          [data-theme=light] .icon-sun { display: none; }
+          [data-theme=light] .icon-moon { display: inline; }
 
           .card {
             background: var(--surface);
