@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { env } from "cloudflare:test";
-import { saveNote, getAndDeleteNote, getNoteMetadata } from "../src/kv";
+import { saveNote, getAndDeleteNote, getNoteMetadata, getNote, incrementAttempts, deleteNote } from "../src/kv";
 
 describe("KV helpers", () => {
   it("saves and retrieves a note", async () => {
@@ -48,7 +48,6 @@ describe("KV helpers", () => {
     expect(meta!.pw).toBe(true);
     expect(meta!.ts).toBeTypeOf("number");
 
-    // Note should still exist
     const note = await getAndDeleteNote(env.NOTES, id);
     expect(note).not.toBeNull();
   });
@@ -59,5 +58,71 @@ describe("KV helpers", () => {
       "00000000-0000-4000-8000-000000000000"
     );
     expect(meta).toBeNull();
+  });
+});
+
+describe("getNote (non-destructive read)", () => {
+  it("reads without deleting", async () => {
+    const id = await saveNote(env.NOTES, {
+      c: "peek",
+      iv: "iv",
+      pw: true,
+      ttl: 3600,
+    });
+
+    const note = await getNote(env.NOTES, id);
+    expect(note).not.toBeNull();
+    expect(note!.c).toBe("peek");
+
+    const again = await getNote(env.NOTES, id);
+    expect(again).not.toBeNull();
+  });
+});
+
+describe("incrementAttempts", () => {
+  it("increments attempts and returns remaining count", async () => {
+    const id = await saveNote(env.NOTES, {
+      c: "pw-note",
+      iv: "iv",
+      pw: true,
+      ttl: 3600,
+    });
+
+    const r1 = await incrementAttempts(env.NOTES, id);
+    expect(r1).not.toBeNull();
+    expect(r1!.remaining).toBe(2);
+
+    const r2 = await incrementAttempts(env.NOTES, id);
+    expect(r2).not.toBeNull();
+    expect(r2!.remaining).toBe(1);
+
+    const r3 = await incrementAttempts(env.NOTES, id);
+    expect(r3).not.toBeNull();
+    expect(r3!.remaining).toBe(0);
+
+    const r4 = await incrementAttempts(env.NOTES, id);
+    expect(r4).toBeNull();
+  });
+});
+
+describe("deleteNote", () => {
+  it("deletes an existing note", async () => {
+    const id = await saveNote(env.NOTES, {
+      c: "del",
+      iv: "iv",
+      pw: true,
+      ttl: 3600,
+    });
+
+    const deleted = await deleteNote(env.NOTES, id);
+    expect(deleted).toBe(true);
+
+    const gone = await getNote(env.NOTES, id);
+    expect(gone).toBeNull();
+  });
+
+  it("returns false for non-existent note", async () => {
+    const deleted = await deleteNote(env.NOTES, "00000000-0000-4000-8000-000000000000");
+    expect(deleted).toBe(false);
   });
 });
