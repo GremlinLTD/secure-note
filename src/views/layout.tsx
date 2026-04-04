@@ -52,7 +52,7 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             --teal-dim: rgba(0, 158, 126, 0.1);
             --coral: #DC2626;
             --text: #1A1F36;
-            --text-muted: #556178;
+            --text-muted: #4A5568;
             --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
             color-scheme: light;
           }
@@ -94,8 +94,8 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 50%;
-            width: 36px;
-            height: 36px;
+            width: 44px;
+            height: 44px;
             font-size: 18px;
             cursor: pointer;
             color: var(--text-muted);
@@ -139,7 +139,7 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
 
           label {
             display: block;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 500;
             color: var(--text-muted);
             margin-bottom: 6px;
@@ -167,7 +167,7 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
 
           input::placeholder,
           textarea::placeholder {
-            color: #556178;
+            color: var(--text-muted);
           }
 
           input:focus,
@@ -176,6 +176,8 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             border-color: var(--teal);
             box-shadow: 0 0 0 3px var(--teal-dim);
           }
+
+          select:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
 
           textarea {
             resize: vertical;
@@ -219,16 +221,18 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             font-size: 15px;
             font-weight: 600;
             padding: 12px 24px;
+            min-height: 44px;
             transition: transform 0.1s, opacity 0.15s;
           }
 
           .btn:hover { opacity: 0.9; }
           .btn:active { transform: scale(0.98); }
           .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+          .btn:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
 
           .btn-primary {
             background: var(--teal);
-            color: #0D1117;
+            color: var(--bg);
           }
 
           .btn-secondary {
@@ -272,6 +276,8 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             background: var(--teal-dim);
           }
 
+          .link-box:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
           .secret-box {
             background: var(--surface-raised);
             border: 1px solid var(--border);
@@ -288,9 +294,11 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
 
           .warning {
             color: var(--coral);
-            font-size: 13px;
+            font-size: 14px;
             margin-top: 12px;
           }
+
+          .required { color: var(--coral); }
 
           .success {
             color: var(--teal);
@@ -338,7 +346,7 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
 
           .size-counter {
             font-weight: 400;
-            font-size: 12px;
+            font-size: 13px;
             color: var(--text-muted);
           }
 
@@ -363,7 +371,7 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
           .teal-dot { color: var(--teal); }
 
           .footer {
-            color: #556178;
+            color: var(--text-muted);
             font-size: 12px;
             margin-top: 40px;
             text-align: center;
@@ -373,16 +381,21 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
             color: var(--teal);
             text-decoration: none;
           }
+
+          @media (prefers-reduced-motion: reduce) {
+            .fade-out, .fade-in { animation: none; opacity: 1; }
+            .btn:active { transform: none; }
+          }
         `}</style>
       </head>
       <body>
-        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark theme">&#x2600;</button>
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark theme"></button>
         <div class="container">
           <div class="logo" dangerouslySetInnerHTML={{ __html: svgLogo }} />
           {children}
         </div>
         <footer class="footer">Powered by <a href="https://gremlin.group">gremlin<span class="teal-dot">.</span></a></footer>
-        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: `(function(){var btn=document.getElementById("theme-toggle");if(!btn)return;var cur=document.documentElement.getAttribute("data-theme")||"dark";btn.textContent=cur==="dark"?"\u2600":"\u263E";btn.addEventListener("click",function(){var c=document.documentElement.getAttribute("data-theme")||"dark";var n=c==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);localStorage.setItem("theme",n);btn.textContent=n==="dark"?"\u2600":"\u263E";});})();` }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: `(function(){var btn=document.getElementById("theme-toggle");if(!btn)return;var sun='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';var moon='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';var cur=document.documentElement.getAttribute("data-theme")||"dark";btn.innerHTML=cur==="dark"?sun:moon;btn.addEventListener("click",function(){var c=document.documentElement.getAttribute("data-theme")||"dark";var n=c==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);localStorage.setItem("theme",n);btn.innerHTML=n==="dark"?sun:moon;});})();` }} />
       </body>
     </html>
     </>
