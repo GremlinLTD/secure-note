@@ -311,6 +311,24 @@ export const Layout: FC<LayoutProps> = ({ title, nonce, children }) => {
 
           .hidden { display: none; }
 
+          .fade-out {
+            animation: fadeOut 300ms ease forwards;
+          }
+
+          .fade-in {
+            animation: fadeIn 300ms ease forwards;
+          }
+
+          @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+          }
+
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+
           .mt-md { margin-top: 16px; }
 
           .size-counter {

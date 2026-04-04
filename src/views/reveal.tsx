@@ -50,9 +50,15 @@ document.getElementById("reveal-form")?.addEventListener("submit", async functio
     }
 
     document.getElementById("secret-content").textContent = plaintext;
-    document.getElementById("secret-box").classList.remove("hidden");
-    document.getElementById("reveal-form").classList.add("hidden");
-    document.getElementById("burned-notice").classList.remove("hidden");
+    var form = document.getElementById("reveal-form");
+    form.classList.add("fade-out");
+    form.addEventListener("animationend", function() {
+      form.classList.add("hidden");
+      document.getElementById("secret-box").classList.remove("hidden");
+      document.getElementById("secret-box").classList.add("fade-in");
+      document.getElementById("burned-notice").classList.remove("hidden");
+      document.getElementById("burned-notice").classList.add("fade-in");
+    }, { once: true });
   } catch (err) {
     btn.disabled = false;
     btn.textContent = "Reveal Secret";
