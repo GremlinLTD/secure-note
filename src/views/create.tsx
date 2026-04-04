@@ -13,6 +13,7 @@ ${encryptScript}
 
 document.getElementById("create-form").addEventListener("submit", async function(e) {
   e.preventDefault();
+  document.getElementById("create-error").classList.add("hidden");
   const btn = document.getElementById("submit-btn");
   btn.disabled = true;
   btn.textContent = "Encrypting…";
@@ -58,7 +59,9 @@ document.getElementById("create-form").addEventListener("submit", async function
   } catch (err) {
     btn.disabled = false;
     btn.textContent = "Create Secret Link";
-    alert("Error: " + err.message);
+    var errEl = document.getElementById("create-error");
+    errEl.textContent = "Error: " + err.message;
+    errEl.classList.remove("hidden");
   }
 });
 
@@ -130,7 +133,7 @@ fetch("/api/stats").then(function(r) {
           </div>
 
           <div class="form-group">
-            <label for="secret">Secret <span id="size-counter" class="size-counter"></span></label>
+            <label for="secret">Secret <span class="required">*</span> <span id="size-counter" class="size-counter"></span></label>
             <textarea id="secret" name="secret" placeholder="Enter your secret message..." required></textarea>
           </div>
 
@@ -173,6 +176,7 @@ fetch("/api/stats").then(function(r) {
           </div>
 
           <button type="submit" id="submit-btn" class="btn btn-primary">Create Secret Link</button>
+          <p id="create-error" class="warning hidden"></p>
         </form>
 
         <div id="result" class="hidden">
