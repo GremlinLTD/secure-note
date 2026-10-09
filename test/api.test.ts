@@ -421,7 +421,7 @@ describe("Page routes", () => {
     expect(res.status).toBe(200);
     const html = await res.text();
     expect(html).toContain("<!DOCTYPE html>");
-    expect(html).toContain("Share a Secret");
+    expect(html).toContain("Share a secret");
     expect(res.headers.get("Content-Security-Policy")).toContain("script-src 'nonce-");
   });
 
@@ -433,7 +433,7 @@ describe("Page routes", () => {
     );
     expect(res.status).toBe(404);
     const html = await res.text();
-    expect(html).toContain("Note Not Found");
+    expect(html).toContain("Note not found");
   });
 
   it("GET /note/:id returns 404 for invalid UUID", async () => {
@@ -457,7 +457,7 @@ describe("Page routes", () => {
     expect(res.status).toBe(200);
     const html = await res.text();
     expect(html).toContain("Secure Note");
-    expect(html).toContain("Reveal Secret");
+    expect(html).toContain("Reveal secret");
   });
 
   it("GET /note/:id shows password field for pw-protected note", async () => {
