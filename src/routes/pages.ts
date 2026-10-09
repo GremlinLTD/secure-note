@@ -60,7 +60,7 @@ pages.get("/note/:id", async (c) => {
 
   if (!UUID_RE.test(id)) {
     return c.html(
-      RevealPage({ nonce, noteId: id, hasPassword: false, notFound: true, decryptScript: getDecryptScript() }) as any,
+      RevealPage({ nonce, noteId: id, hasPassword: false, notFound: true, decryptScript: getDecryptScript(), baseUrl: c.env.BASE_URL ?? "" }) as any,
       404
     );
   }
@@ -69,12 +69,12 @@ pages.get("/note/:id", async (c) => {
 
   if (!meta) {
     return c.html(
-      RevealPage({ nonce, noteId: id, hasPassword: false, notFound: true, decryptScript: getDecryptScript() }) as any,
+      RevealPage({ nonce, noteId: id, hasPassword: false, notFound: true, decryptScript: getDecryptScript(), baseUrl: c.env.BASE_URL ?? "" }) as any,
       404
     );
   }
 
   return c.html(
-    RevealPage({ nonce, noteId: id, hasPassword: meta.pw, notFound: false, decryptScript: getDecryptScript(), title: meta.title, burnMsg: meta.burnMsg, maxViews: meta.maxViews, ipRestricted: !!(meta.allowedIps && meta.allowedIps.length > 0) }) as any
+    RevealPage({ nonce, noteId: id, hasPassword: meta.pw, notFound: false, decryptScript: getDecryptScript(), title: meta.title, burnMsg: meta.burnMsg, maxViews: meta.maxViews, ipRestricted: !!(meta.allowedIps && meta.allowedIps.length > 0), baseUrl: c.env.BASE_URL ?? "" }) as any
   );
 });

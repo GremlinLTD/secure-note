@@ -11,9 +11,10 @@ type RevealPageProps = {
   burnMsg?: string;
   maxViews?: number;
   ipRestricted?: boolean;
+  baseUrl: string;
 };
 
-export const RevealPage: FC<RevealPageProps> = ({ nonce, noteId, hasPassword, notFound, decryptScript, title, burnMsg, maxViews, ipRestricted }) => {
+export const RevealPage: FC<RevealPageProps> = ({ nonce, noteId, hasPassword, notFound, decryptScript, title, burnMsg, maxViews, ipRestricted, baseUrl }) => {
   const inlineScript = `
 ${decryptScript}
 
@@ -35,13 +36,11 @@ document.getElementById("reveal-form")?.addEventListener("submit", async functio
 
     const res = await fetch("/api/notes/" + encodeURIComponent(noteId));
     if (res.status === 404) {
-      document.getElementById("note-ui").classList.add("hidden");
-      document.getElementById("not-found").classList.remove("hidden");
+      showGone("not-found");
       return;
     }
     if (res.status === 403) {
-      document.getElementById("note-ui").classList.add("hidden");
-      document.getElementById("ip-denied").classList.remove("hidden");
+      showGone("ip-denied");
       return;
     }
     if (!res.ok) {
@@ -59,10 +58,9 @@ document.getElementById("reveal-form")?.addEventListener("submit", async functio
 
     // Update burned notice based on remaining views
     var burnedNoticeEl = document.getElementById("burned-notice");
-    var burnedMsgEl = burnedNoticeEl.querySelector("p");
     if (typeof data.viewsRemaining === "number" && data.viewsRemaining > 0) {
-      burnedMsgEl.textContent = data.viewsRemaining + " view" + (data.viewsRemaining === 1 ? "" : "s") + " remaining.";
-      burnedMsgEl.className = "success mt-md";
+      document.getElementById("burned-head").textContent = data.viewsRemaining + " view" + (data.viewsRemaining === 1 ? "" : "s") + " remaining";
+      document.getElementById("burned-text").textContent = "After the last view it will be permanently destroyed.";
     }
 
     document.getElementById("secret-content").textContent = plaintext;
@@ -77,7 +75,7 @@ document.getElementById("reveal-form")?.addEventListener("submit", async functio
     }, { once: true });
   } catch (err) {
     btn.disabled = false;
-    btn.textContent = "Reveal Secret";
+    btn.textContent = "Reveal secret";
     if (err.name === "OperationError") {
       const errorEl = document.getElementById("decrypt-error");
       const attemptsEl = document.getElementById("attempts-remaining");
@@ -85,13 +83,14 @@ document.getElementById("reveal-form")?.addEventListener("submit", async functio
 
       if (attemptsEl) {
         const remaining = parseInt(attemptsEl.dataset.remaining || "0", 10) - 1;
-        attemptsEl.dataset.remaining = String(remaining);
         if (remaining <= 0) {
-          errorEl.textContent = "Too many failed attempts. The note has been permanently destroyed.";
-          btn.disabled = true;
-        } else {
-          errorEl.textContent = "Wrong password. " + remaining + " attempt" + (remaining === 1 ? "" : "s") + " remaining.";
+          showGone("destroyed");
+          return;
         }
+        attemptsEl.dataset.remaining = String(remaining);
+        attemptsEl.textContent = remaining + " of 3 attempts left";
+        document.getElementById("password").classList.add("input-error");
+        errorEl.textContent = "Wrong password. " + remaining + " attempt" + (remaining === 1 ? "" : "s") + " left.";
       } else {
         errorEl.textContent = "Decryption failed. The note has been destroyed.";
       }
@@ -107,91 +106,111 @@ document.getElementById("copy-secret-btn")?.addEventListener("click", function()
   const text = document.getElementById("secret-content").textContent;
   navigator.clipboard.writeText(text).then(function() {
     const btn = document.getElementById("copy-secret-btn");
-    btn.textContent = "Copied!";
-    setTimeout(function() { btn.textContent = "Copy Secret"; }, 2000);
+    btn.textContent = "Copied";
+    setTimeout(function() { btn.textContent = "Copy secret"; }, 2000);
   });
 });
+
+document.getElementById("password")?.addEventListener("input", function() {
+  this.classList.remove("input-error");
+  document.getElementById("decrypt-error").classList.add("hidden");
+});
+
+function showGone(id) {
+  document.getElementById("note-ui").classList.add("hidden");
+  document.getElementById(id).classList.remove("hidden");
+}
 `;
+
+  const host = baseUrl.replace(/^https?:\/\//, "");
+  const shortId = noteId.length > 12 ? `${noteId.slice(0, 4)}…${noteId.slice(-4)}` : noteId;
+  const breadcrumb = <p class="eyebrow">{host}/note/{shortId}</p>;
+
+  const gone = (id: string, heading: string, text: string, hidden: boolean) => (
+    <div id={id} class={hidden ? "gone hidden" : "gone"}>
+      <span class="icon-tile icon-tile-muted"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7"/></svg></span>
+      <h1>{heading}<span class="accent-dot">.</span></h1>
+      <p>{text}</p>
+      <a href="/" class="btn btn-primary">Share a secret</a>
+    </div>
+  );
+  const notFoundText = "This note does not exist, has already been viewed, or has expired.";
 
   if (notFound) {
     return (
       <Layout title="Note Not Found — Gremlin Secure Note" nonce={nonce}>
-        <div class="card">
-          <div class="burned-msg">
-            <h1>Note Not Found</h1>
-            <p>This note does not exist, has already been viewed, or has expired.</p>
-          </div>
+        <div class="reveal-wrap">
+          {breadcrumb}
+          {gone("not-found", "Note not found", notFoundText, false)}
         </div>
       </Layout>
     );
   }
 
+  const multiView = !hasPassword && !!maxViews && maxViews > 1;
+  const intro = hasPassword
+    ? "Enter the password the sender gave you. You have three attempts before the note is destroyed."
+    : multiView && ipRestricted
+      ? `This note can be viewed ${maxViews} times, and only from approved IP addresses.`
+      : multiView
+        ? `This note can be viewed ${maxViews} times before it is destroyed.`
+        : "This note will be permanently destroyed after you reveal it. Make sure you’re ready to copy it.";
+
   return (
     <Layout title="Reveal Secure Note — Gremlin Secure Note" nonce={nonce}>
-      <div class="card">
-        <div id="note-ui">
-          <div class="reveal-header">
-            <div class="lock-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0110 0v4"/>
-              </svg>
-            </div>
-            <h1>{title || "Secure Note"}</h1>
-            <p class="subtitle">
-              {hasPassword
-                ? "This note is password-protected. You have 3 attempts."
-                : maxViews && maxViews > 1
-                  ? `This note can be viewed ${maxViews} times before it is destroyed.`
-                  : "This note will be permanently destroyed after you reveal it."}
-            </p>
-            {ipRestricted && (
-              <div class="info-badge">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
-                IP restricted
-              </div>
-            )}
+      <div class="reveal-wrap">
+        {breadcrumb}
+
+        <div id="note-ui" class="stack">
+          <div class="note-head">
+            <span class="icon-tile icon-tile-dark"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10.5" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></span>
+            <span class="note-head-text">
+              <span class="note-from">Someone sent you a secure note</span>
+              <span class="note-title">{title || "Secure Note"}</span>
+            </span>
           </div>
 
-          <form id="reveal-form">
+          <div class="chips">
+            {hasPassword && <span class="chip"><span class="chip-dot dot-indigo"></span>Password protected</span>}
+            {ipRestricted && <span class="chip"><span class="chip-dot dot-sky"></span>IP restricted</span>}
+            {multiView
+              ? <span class="chip"><span class="chip-dot dot-amber"></span>{maxViews} views</span>
+              : <span class="chip"><span class="chip-dot dot-coral"></span>Burns after reading</span>}
+          </div>
+
+          <form id="reveal-form" class="panel reveal-panel">
+            <p class="reveal-intro">{intro}</p>
             {hasPassword && (
-              <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter the password to decrypt" />
+              <div class="field">
+                <span class="field-label-row">
+                  <label for="password" class="field-label">Password</label>
+                  <span id="attempts-remaining" class="attempts-label" data-remaining="3">3 of 3 attempts left</span>
+                </span>
+                <input type="password" id="password" name="password" placeholder="Enter the password you were given" />
               </div>
             )}
-
-            <p id="decrypt-error" class="warning hidden"></p>
-            {hasPassword && <span id="attempts-remaining" class="hidden" data-remaining="3"></span>}
-
-            <button type="submit" id="reveal-btn" class="btn btn-danger">Reveal Secret</button>
+            <p id="decrypt-error" role="alert" class="error-text hidden"></p>
+            <button type="submit" id="reveal-btn" class="btn btn-danger btn-block">Reveal secret</button>
+            <p id="reveal-error" role="alert" class="error-text hidden"></p>
           </form>
 
-          <p id="reveal-error" class="warning hidden"></p>
-
-          <div id="secret-box" class="hidden">
-            <div class="secret-box" id="secret-content"></div>
-            <button id="copy-secret-btn" class="btn btn-primary mt-md">Copy Secret</button>
+          <div id="secret-box" class="stack-sm hidden">
+            <pre class="secret-box" id="secret-content"></pre>
+            <div><button id="copy-secret-btn" type="button" class="btn btn-primary">Copy secret</button></div>
           </div>
 
-          <div id="burned-notice" class="hidden">
-            <p class="warning mt-md">{burnMsg ?? "This note has been permanently destroyed and cannot be viewed again."}</p>
-          </div>
-        </div>
-
-        <div id="not-found" class="hidden">
-          <div class="burned-msg">
-            <h2>Note Not Found</h2>
-            <p>This note does not exist, has already been viewed, or has expired.</p>
+          <div id="burned-notice" class="burned-notice hidden">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-3.5 2-5 1 1.5 2 2 2 2s1-3.5 1-7z"/></svg>
+            <span class="step-body">
+              <span id="burned-head" class="burned-head">This note has been destroyed</span>
+              <span id="burned-text" class="burned-text">{burnMsg ?? "It has been permanently deleted and cannot be viewed again."}</span>
+            </span>
           </div>
         </div>
 
-        <div id="ip-denied" class="hidden">
-          <div class="burned-msg">
-            <h2>Access Denied</h2>
-            <p>Access denied. This note is restricted to specific IP addresses.</p>
-          </div>
-        </div>
+        {gone("not-found", "Note not found", notFoundText, true)}
+        {gone("ip-denied", "Access denied", "This note is restricted to specific IP addresses, and yours isn’t one of them.", true)}
+        {gone("destroyed", "Note destroyed", "Too many wrong passwords. The note has been permanently destroyed. Ask the sender to share it again.", true)}
       </div>
 
       <script nonce={nonce} dangerouslySetInnerHTML={{ __html: inlineScript }} />
